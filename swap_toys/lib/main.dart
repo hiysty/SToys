@@ -5,6 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:swap_toys/page/explore_page.dart';
+import 'package:swap_toys/page/home_page.dart';
+import 'package:swap_toys/page/profile_page.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,48 +35,45 @@ class MyApp extends StatelessWidget {
       );
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
+class AppPage extends StatefulWidget {
+  const AppPage({super.key, required this.title});
 
   final String title;
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AppPage> createState() => _AppPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _AppPageState extends State<AppPage> {
+  int currentIndex = 0;
+
+  final screens = [
+    HomePage(),
+    ExplorePage(),
+    ProfilePage(),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser!;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Signed In as ",
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              user.email!,
-              style: const TextStyle(fontSize: 20),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.arrow_back, size: 32),
-              label: const Text(
-                "Sign Out",
-                style: TextStyle(fontSize: 24),
-              ),
-              onPressed: () => FirebaseAuth.instance.signOut(),
-            )
-          ],
-        ),
+      body: screens[currentIndex],
+      bottomNavigationBar: GNav(
+        gap: 5,
+        onTabChange: (index) =>
+            setState(() => currentIndex != index ? currentIndex = index : null),
+        tabs: const [
+          GButton(
+            icon: Icons.home,
+            text: 'Ana Sayfa',
+          ),
+          GButton(
+            icon: Icons.explore,
+            text: 'Keşfet',
+          ),
+          GButton(
+            icon: Icons.account_box,
+            text: 'Profil',
+          ),
+        ],
       ),
     );
   }
@@ -91,7 +92,7 @@ class MainPage extends StatelessWidget {
             } else if (snapshot.hasError) {
               return const Center(child: Text("Something went wrong!"));
             } else if (snapshot.hasData) {
-              return const HomePage(title: "home");
+              return const AppPage(title: "home");
             } else {
               return const AuthPage();
             }
