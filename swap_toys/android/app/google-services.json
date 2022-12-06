@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "794543981722",
+    "project_id": "stoys-83f01",
+    "storage_bucket": "stoys-83f01.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:794543981722:android:9e0eb69b34a2bc554d4b23",
+        "android_client_info": {
+          "package_name": "com.example.swap_toys"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "794543981722-8dvllicfb0l2aumnf1c32mpdcag1rvg6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJYUlKi8XUnFcXgnc-o4WcpgDt-TDGSFA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "794543981722-8dvllicfb0l2aumnf1c32mpdcag1rvg6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
