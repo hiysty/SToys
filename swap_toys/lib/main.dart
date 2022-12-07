@@ -132,13 +132,14 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   }
 
   Future checkEmailVerified() async {
-    //call after email verification
-    await FirebaseAuth.instance.currentUser!.reload();
-    setState(() {
-      isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
-    });
+    if (FirebaseAuth.instance.currentUser != null) {
+      await FirebaseAuth.instance.currentUser!.reload();
+      setState(() {
+        isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
+      });
 
-    if (isEmailVerified!) timer?.cancel();
+      if (isEmailVerified!) timer?.cancel();
+    } //call after email verification
   }
 
   Future sendVerificationEmail() async {
@@ -157,7 +158,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
   @override
   Widget build(BuildContext context) => isEmailVerified!
-      ? HomePage()
+      ? AppPage(
+          title: "app",
+        )
       : Scaffold(
           appBar: AppBar(
             title: const Text("E-posta doğrulama"),
@@ -174,29 +177,26 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                  ),
-                  icon: const Icon(Icons.mail, size: 32),
-                  label: const Text(
-                    "Postayı tekrar gönder",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  onPressed: canResendEmail
-                      ? sendVerificationEmail
-                      : Utils.showSnackBar(
-                          "Lütfen tekrar göndermeden önce biraz daha bekleyiniz",
-                          Colors.yellowAccent),
-                ),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    icon: const Icon(Icons.mail, size: 32),
+                    label: const Text(
+                      "Postayı tekrar gönder",
+                      style: TextStyle(fontSize: 24),
+                    ),
+                    onPressed: canResendEmail ? sendVerificationEmail : null),
                 SizedBox(
                   height: 8,
                 ),
                 TextButton(
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: Size.fromHeight(50)),
-                  child: Text("İptal et", style: TextStyle(fontSize: 24)),
-                  onPressed: () => FirebaseAuth.instance.signOut(),
-                )
+                    style: ElevatedButton.styleFrom(
+                        minimumSize: Size.fromHeight(50)),
+                    child: Text("İptal et", style: TextStyle(fontSize: 24)),
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut();
+                      timer?.cancel();
+                    })
               ],
             ),
           ));
