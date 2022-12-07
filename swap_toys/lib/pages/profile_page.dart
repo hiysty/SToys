@@ -9,10 +9,10 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Padding(
-            padding: EdgeInsets.only(left: 20, top: 20),
+            padding: const EdgeInsets.only(left: 20, top: 20),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                     radius: 65,
                     backgroundImage: NetworkImage(
                         "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),

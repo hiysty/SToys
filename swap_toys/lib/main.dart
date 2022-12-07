@@ -1,14 +1,14 @@
-//import 'dart:ffi';
-//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:swap_toys/page/explore_page.dart';
-import 'package:swap_toys/page/home_page.dart';
-import 'package:swap_toys/page/profile_page.dart';
+import 'package:swap_toys/pages/explore_page.dart';
+import 'package:swap_toys/pages/home_page.dart';
+import 'package:swap_toys/pages/profile_page.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,13 +92,114 @@ class MainPage extends StatelessWidget {
             } else if (snapshot.hasError) {
               return const Center(child: Text("Something went wrong!"));
             } else if (snapshot.hasData) {
-              return const AppPage(title: "home");
+              return VerifyEmailPage();
             } else {
               return const AuthPage();
             }
           },
         ),
       );
+}
+
+class VerifyEmailPage extends StatefulWidget {
+  @override
+  _VerifyEmailPageState createState() => _VerifyEmailPageState();
+}
+
+class _VerifyEmailPageState extends State<VerifyEmailPage> {
+  bool? isEmailVerified = false;
+  bool canResendEmail = false;
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    isEmailVerified = FirebaseAuth.instance.currentUser?.emailVerified;
+    if (!isEmailVerified!) {
+      sendVerificationEmail();
+
+      timer = Timer.periodic(
+          const Duration(seconds: 3), (_) => checkEmailVerified());
+    }
+
+    @override
+    void dispose() {
+      timer?.cancel();
+
+      super.dispose();
+    }
+  }
+
+  Future checkEmailVerified() async {
+    //call after email verification
+    await FirebaseAuth.instance.currentUser!.reload();
+    setState(() {
+      isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
+    });
+
+    if (isEmailVerified!) timer?.cancel();
+  }
+
+  Future sendVerificationEmail() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      await user.sendEmailVerification();
+
+      setState(() => canResendEmail = false);
+      await Future.delayed(Duration(seconds: 5));
+
+      setState(() => canResendEmail = false);
+    } catch (e) {
+      Utils.showSnackBar(e.toString(), Colors.red);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => isEmailVerified!
+      ? HomePage()
+      : Scaffold(
+          appBar: AppBar(
+            title: const Text("E-posta doğrulama"),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "e-postanıze bir doğrulama postası gönderilmiştir !",
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  icon: const Icon(Icons.mail, size: 32),
+                  label: const Text(
+                    "Postayı tekrar gönder",
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  onPressed: canResendEmail
+                      ? sendVerificationEmail
+                      : Utils.showSnackBar(
+                          "Lütfen tekrar göndermeden önce biraz daha bekleyiniz",
+                          Colors.yellowAccent),
+                ),
+                SizedBox(
+                  height: 8,
+                ),
+                TextButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size.fromHeight(50)),
+                  child: Text("İptal et", style: TextStyle(fontSize: 24)),
+                  onPressed: () => FirebaseAuth.instance.signOut(),
+                )
+              ],
+            ),
+          ));
 }
 
 class AuthPage extends StatefulWidget {
@@ -136,6 +237,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
   final formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
@@ -179,6 +281,19 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                     : null),
               ),
               const SizedBox(height: 20),
+              TextFormField(
+                controller: confirmPasswordController,
+                textInputAction: TextInputAction.done,
+                decoration:
+                    const InputDecoration(labelText: "Confirm Password"),
+                obscureText: true,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: ((value) =>
+                    value != null && value != passwordController.text.trim()
+                        ? "Confirm password does not match"
+                        : null),
+              ),
+              const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: const Icon(Icons.lock_open, size: 32),
                 label: const Text(
@@ -196,7 +311,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                       children: [
                     TextSpan(
                         recognizer: TapGestureRecognizer()
-                          ..onTap = widget.onClickedSignUp,
+                          ..onTap = widget.onClickedSignIn,
                         text: "Sign In",
                         style: TextStyle(
                             decoration: TextDecoration.underline,
@@ -220,7 +335,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
           email: emailController.text.trim(),
           password: passwordController.text.trim());
     } on FirebaseAuthException catch (e) {
-      Utils.showSnackBar(e.message);
+      Utils.showSnackBar(e.message, Colors.red);
     }
     navigatorKey.currentState!.popUntil((route) => route.isFirst);
   }
@@ -229,10 +344,10 @@ class _SignUpWidgetState extends State<SignUpWidget> {
 class Utils {
   static GlobalKey<ScaffoldMessengerState> messengryKey =
       GlobalKey<ScaffoldMessengerState>();
-  static showSnackBar(String? text) {
+  static showSnackBar(String? text, Color color) {
     if (text == null) return;
 
-    final snackBar = SnackBar(content: Text(text), backgroundColor: Colors.red);
+    final snackBar = SnackBar(content: Text(text), backgroundColor: color);
 
     messengryKey.currentState!
       ..removeCurrentSnackBar()
@@ -297,6 +412,22 @@ class _LoginWidgetState extends State<LoginWidget> {
               onPressed: signIn,
             ),
             const SizedBox(height: 24),
+            GestureDetector(
+              child: const Text(
+                "Forgot Password?",
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  color: Colors.black,
+                  fontSize: 20,
+                ),
+              ),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => ForgotPasswordPage(),
+              )),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
             RichText(
                 text: TextSpan(
                     style: const TextStyle(
@@ -329,8 +460,97 @@ class _LoginWidgetState extends State<LoginWidget> {
         password: passwordController.text.trim(),
       );
     } on FirebaseAuthException catch (e) {
-      Utils.showSnackBar(e.message);
+      Utils.showSnackBar(e.message, Colors.red);
     }
     navigatorKey.currentState!.popUntil((route) => route.isFirst);
+  }
+}
+
+class ForgotPasswordPage extends StatefulWidget {
+  @override
+  _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final formKey = GlobalKey<FormState>();
+  final emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text("Reset Password"),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Receive an email to \n reset your password",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
+                  controller: emailController,
+                  cursorColor: Colors.white,
+                  textInputAction: TextInputAction.done,
+                  decoration: const InputDecoration(labelText: "E-mail"),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (email) =>
+                      email != null && !EmailValidator.validate(email)
+                          ? "Enter a valid email"
+                          : null,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  icon: const Icon(Icons.email_outlined),
+                  label: const Text(
+                    "Reset Password",
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  onPressed: resetPassword,
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+
+  void resetPassword() async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+              child: CircularProgressIndicator(),
+            ));
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: emailController.text.trim());
+
+      Utils.showSnackBar("Password reset e-mail sent!", Colors.green);
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } on FirebaseAuthException catch (e) {
+      Utils.showSnackBar(e.message, Colors.red);
+      Navigator.of(context).pop();
+    }
   }
 }
