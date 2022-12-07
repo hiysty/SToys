@@ -6,7 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:swap_toys/page/explore_page.dart';
+import 'package:swap_toys/page/search_page.dart';
 import 'package:swap_toys/page/home_page.dart';
 import 'package:swap_toys/page/profile_page.dart';
 
@@ -48,7 +48,7 @@ class _AppPageState extends State<AppPage> {
 
   final screens = [
     HomePage(),
-    ExplorePage(),
+    SearchPage(),
     ProfilePage(),
   ];
 
@@ -66,8 +66,8 @@ class _AppPageState extends State<AppPage> {
             text: 'Ana Sayfa',
           ),
           GButton(
-            icon: Icons.explore,
-            text: 'Keşfet',
+            icon: Icons.search,
+            text: 'Ara',
           ),
           GButton(
             icon: Icons.account_box,
@@ -90,7 +90,7 @@ class MainPage extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return const Center(child: Text("Something went wrong!"));
+              return const Center(child: Text("Bir şeyler yanlış gitti!"));
             } else if (snapshot.hasData) {
               return const AppPage(title: "home");
             } else {
