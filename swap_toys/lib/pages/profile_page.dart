@@ -49,10 +49,11 @@ class AccountPage extends StatelessWidget {
                   backgroundImage: NetworkImage(
                       "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),
               SizedBox(width: 18),
-              Text(
+              Expanded(
+                  child: Text(
                 FirebaseAuth.instance.currentUser!.email!,
                 style: TextStyle(fontSize: 18),
-              )
+              ))
             ],
           )),
       Expanded(
