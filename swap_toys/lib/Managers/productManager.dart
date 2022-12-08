@@ -1,5 +1,13 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:swap_toys/models/user.dart';
+import 'package:swap_toys/models/product.dart';
+
+import '../pages/profile_page.dart';
+import 'cameraManager.dart';
 
 const List<String> statusList = <String>[
   'Oldukça Eski',
@@ -10,27 +18,32 @@ const List<String> statusList = <String>[
 ];
 
 class ProductGrid extends StatelessWidget {
+  const ProductGrid({super.key});
   @override
   Widget build(BuildContext context) {
-    return Container(color: Colors.purple);
+    return Container(
+      color: Colors.purple,
+    );
   }
 }
 
 class CreateProduct extends StatefulWidget {
+  String path;
+  CreateProduct({super.key, required this.path});
   @override
   State<CreateProduct> createState() => _CreateProductState();
 }
 
 class _CreateProductState extends State<CreateProduct> {
-  final ImagePicker imagePicker = ImagePicker();
-  List<XFile>? imageFileList = [];
-
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   String dropdownValue = statusList[2];
+  static late List<String> localImgPaths = [];
 
   @override
   Widget build(BuildContext context) {
+    if (Path != "" && !localImgPaths.contains(Path))
+      localImgPaths.add(widget.path);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -81,12 +94,7 @@ class _CreateProductState extends State<CreateProduct> {
                     );
                   }).toList()),
               SizedBox(height: 10),
-              MaterialButton(
-                  color: Colors.blue,
-                  child: const Text("Resim Ekle",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
-                  onPressed: () {})
+              takenPics()
             ],
           )),
       floatingActionButton: FloatingActionButton(
@@ -95,9 +103,41 @@ class _CreateProductState extends State<CreateProduct> {
           onPressed: () {}),
     );
   }
-}
 
-class Product {
-  Product(String title, String status, List<Image> image,
-      {String? description});
+  Widget takenPics() {
+    return Column(children: [
+      Padding(
+          padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+          child: Row(children: [
+            Expanded(
+              child: ScrollConfiguration(
+                  behavior: MyBehavior(),
+                  child: GridView.count(
+                    padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                    crossAxisSpacing: 5,
+                    mainAxisSpacing: 5,
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    children: List.generate(localImgPaths.length + 1,
+                        (index) => getPicPreviews(index)),
+                  )),
+            )
+          ]))
+    ]);
+  }
+
+  Widget getPicPreviews(int index) {
+    if (index < localImgPaths.length) {
+      return Container(
+        child: Text(localImgPaths[index]),
+      );
+    } else
+      (index == localImgPaths.length);
+    return ElevatedButton.icon(
+      onPressed: () => openCam(),
+      icon: Icon(Icons.add_a_photo_outlined),
+      label: Text("add pic"),
+    );
+    throw Text("upload error!");
+  }
 }

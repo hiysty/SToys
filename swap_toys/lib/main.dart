@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:swap_toys/pages/search_page.dart';
-import 'package:swap_toys/pages/search_page.dart';
 import 'package:swap_toys/pages/home_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 

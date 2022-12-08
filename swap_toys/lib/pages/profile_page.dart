@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:swap_toys/product.dart';
+
+import '../Managers/productManager.dart';
 
 //profil
 
@@ -22,7 +23,9 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Icon(Icons.add),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return CreateProduct();
+                return CreateProduct(
+                  path: "",
+                );
               }));
             }));
   }
@@ -65,9 +68,7 @@ class AccountPage extends StatelessWidget {
               mainAxisSpacing: 5,
               shrinkWrap: true,
               crossAxisCount: 3,
-              children: List.generate(25, (index) {
-                return ProductGrid();
-              }),
+              children: List.generate(25, (index) => ProductGrid()),
             )),
       )
     ]);
