@@ -7,7 +7,7 @@ class SearchPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Ürün Ara"),
+        title: const Text("Ürün Ara"),
         actions: [
           IconButton(
               onPressed: () {
@@ -18,10 +18,10 @@ class SearchPage extends StatelessWidget {
       ),
       body: ElevatedButton.icon(
         onPressed: () => FirebaseAuth.instance.signOut(),
-        label: Text(
+        label: const Text(
           "Sign Out",
         ),
-        icon: Icon(Icons.exit_to_app),
+        icon: const Icon(Icons.exit_to_app),
       ),
     );
   }

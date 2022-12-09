@@ -1,20 +1,20 @@
 {
   "project_info": {
-    "project_number": "794543981722",
-    "project_id": "stoys-83f01",
-    "storage_bucket": "stoys-83f01.appspot.com"
+    "project_number": "994213089058",
+    "project_id": "swaptoys-866e4",
+    "storage_bucket": "swaptoys-866e4.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:794543981722:android:9e0eb69b34a2bc554d4b23",
+        "mobilesdk_app_id": "1:994213089058:android:64f50c5f1ea38a40dd5f7b",
         "android_client_info": {
           "package_name": "com.example.swap_toys"
         }
       },
       "oauth_client": [
         {
-          "client_id": "794543981722-8dvllicfb0l2aumnf1c32mpdcag1rvg6.apps.googleusercontent.com",
+          "client_id": "994213089058-0gqlqhbeq4446jergi3rd82163d6eeuc.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,7 +27,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "794543981722-8dvllicfb0l2aumnf1c32mpdcag1rvg6.apps.googleusercontent.com",
+              "client_id": "994213089058-0gqlqhbeq4446jergi3rd82163d6eeuc.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

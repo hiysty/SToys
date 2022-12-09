@@ -99,11 +99,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!mounted) return;
 
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CreateProduct(path: image.path),
-              ),
-            );
+            CreateProductFunc(image.path);
             // If the picture was taken, display it on a new screen.
 
           } catch (e) {

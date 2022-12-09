@@ -44,18 +44,18 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(children: [
       Padding(
-          padding: EdgeInsets.fromLTRB(30, 30, 30, 20),
+          padding: const EdgeInsets.fromLTRB(30, 30, 30, 20),
           child: Row(
             children: [
-              CircleAvatar(
+              const CircleAvatar(
                   radius: 60,
                   backgroundImage: NetworkImage(
                       "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),
-              SizedBox(width: 18),
+              const SizedBox(width: 18),
               Expanded(
                   child: Text(
                 FirebaseAuth.instance.currentUser!.email!,
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
               ))
             ],
           )),
@@ -68,7 +68,7 @@ class AccountPage extends StatelessWidget {
               mainAxisSpacing: 5,
               shrinkWrap: true,
               crossAxisCount: 3,
-              children: List.generate(25, (index) => ProductGrid()),
+              children: List.generate(25, (index) => const ProductGrid()),
             )),
       )
     ]);

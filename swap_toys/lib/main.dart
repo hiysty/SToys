@@ -148,7 +148,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       await user.sendEmailVerification();
 
       setState(() => canResendEmail = false);
-      await Future.delayed(Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 5));
 
       setState(() => canResendEmail = false);
     } catch (e) {
@@ -158,7 +158,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
   @override
   Widget build(BuildContext context) => isEmailVerified!
-      ? AppPage(
+      ? const AppPage(
           title: "app",
         )
       : Scaffold(
@@ -186,13 +186,14 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                       style: TextStyle(fontSize: 24),
                     ),
                     onPressed: canResendEmail ? sendVerificationEmail : null),
-                SizedBox(
+                const SizedBox(
                   height: 8,
                 ),
                 TextButton(
                     style: ElevatedButton.styleFrom(
-                        minimumSize: Size.fromHeight(50)),
-                    child: Text("İptal et", style: TextStyle(fontSize: 24)),
+                        minimumSize: const Size.fromHeight(50)),
+                    child:
+                        const Text("İptal et", style: TextStyle(fontSize: 24)),
                     onPressed: () {
                       FirebaseAuth.instance.signOut();
                       timer?.cancel();
