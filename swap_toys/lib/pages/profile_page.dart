@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:swap_toys/models/product.dart';
 
 import '../Managers/productManager.dart';
 
@@ -8,6 +10,8 @@ import '../Managers/productManager.dart';
 
 class ProfilePage extends StatefulWidget {
   static final user = FirebaseAuth.instance.currentUser!;
+
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -23,12 +27,17 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Icon(Icons.add),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return CreateProduct(
-                  path: "",
-                );
+                return CreateProduct();
               }));
             }));
   }
+
+  /*Stream<List<Product>> readUsers() => FirebaseFirestore.instance
+      .collection("products")
+      .snapshots()
+      .map((snapshot) =>
+          snapshot.docs.map((doc) => Product.fromJson(doc.data())));
+  */
 }
 
 class MyBehavior extends ScrollBehavior {
@@ -40,6 +49,8 @@ class MyBehavior extends ScrollBehavior {
 }
 
 class AccountPage extends StatelessWidget {
+  const AccountPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [
@@ -50,7 +61,7 @@ class AccountPage extends StatelessWidget {
               const CircleAvatar(
                   radius: 60,
                   backgroundImage: NetworkImage(
-                      "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),
+                      "https://firebasestorage.googleapis.com/v0/b/swapurtoys.appspot.com/o/files%2Fimages?alt=media&token=48262b6e-3593-44f5-9de2-0a5bfefdc128")),
               const SizedBox(width: 18),
               Expanded(
                   child: Text(

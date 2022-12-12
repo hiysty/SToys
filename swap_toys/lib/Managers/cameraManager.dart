@@ -8,23 +8,6 @@ import 'package:swap_toys/Managers/productManager.dart';
 Future<void> openCam() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Obtain a list of the available cameras on the device.
-  final cameras = await availableCameras();
-
-  // Get a specific camera from the list of available cameras.
-  final firstCamera = cameras.first;
-
-  runApp(
-    MaterialApp(
-      theme: ThemeData.dark(),
-      home: TakePictureScreen(
-        // Pass the appropriate camera to the TakePictureScreen widget.
-        camera: firstCamera,
-      ),
-    ),
-  );
 }
 
 // A screen that allows users to take a picture using a given camera.
@@ -99,7 +82,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!mounted) return;
 
-            CreateProductFunc(image.path);
+            print("${image.path} cameraManager");
+            Navigator.pop(context, image.path);
             // If the picture was taken, display it on a new screen.
 
           } catch (e) {

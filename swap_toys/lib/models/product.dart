@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,25 +7,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 class Product {
   late String title;
   late int status;
-  late List<String> imgsPaths;
-  late String id;
-  late String? description;
+  late Map imgsLinks;
+  late String description;
+  late String email;
 
-  Product(String title, int status, List<String> imgsPaths, String id,
-      {String? description}) {
+  Product(String title, int status, Map imgLinks, String description,
+      String email) {
     this.title = title;
     this.status = status;
-    this.imgsPaths = imgsPaths;
-    this.id = id;
+    this.imgsLinks = imgLinks;
     this.description = description;
+    this.email = email;
   }
 
   Future createProduct() async {
     final docProduct = FirebaseFirestore.instance.collection("products").doc();
 
-    final json = {"title": title, "status": status, "description": description};
+    final json = {
+      "title": title,
+      "status": status,
+      "desc": description,
+      "imgList": imgsLinks,
+      "email": email
+    };
     await docProduct.set(json);
   }
-
-  late List<String> localImgPaths;
 }

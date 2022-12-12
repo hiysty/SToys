@@ -12,6 +12,7 @@ import 'package:swap_toys/pages/profile_page.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
   runApp(const MyApp());
 }

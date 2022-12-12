@@ -1,12 +1,12 @@
 import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:swap_toys/models/product.dart';
-
 import '../pages/profile_page.dart';
 import 'cameraManager.dart';
+import 'dart:async';
+import 'package:camera/camera.dart';
 
 const List<String> statusList = <String>[
   'Oldukça Eski',
@@ -30,16 +30,16 @@ Future<void> CreateProductFunc(String path) async {
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
-      home: CreateProduct(path: path),
+      home: CreateProduct(),
     ),
   );
 }
 
 class CreateProduct extends StatefulWidget {
-  String path;
-  CreateProduct({super.key, required this.path});
+  CreateProduct({super.key});
   @override
   State<CreateProduct> createState() => _CreateProductState();
+  late String path;
 }
 
 class _CreateProductState extends State<CreateProduct> {
@@ -47,12 +47,11 @@ class _CreateProductState extends State<CreateProduct> {
   TextEditingController descriptionController = TextEditingController();
   String dropdownValue = statusList[2];
   static late List<String> localImgPaths = [];
+  static late List<String> imgLinks = [];
 
   @override
   Widget build(BuildContext context) {
     int statuValue = 2;
-    if (widget.path != "" && !localImgPaths.contains(widget.path))
-      localImgPaths.add(widget.path);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -110,11 +109,15 @@ class _CreateProductState extends State<CreateProduct> {
       floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.blue,
           child: const Icon(Icons.upload),
-          onPressed: () {
+          onPressed: () async {
             Product product = Product(
-                titleController.text, statuValue, localImgPaths, "id",
-                description: descriptionController.text);
+                titleController.text,
+                statuValue,
+                await uploadImgs(localImgPaths),
+                descriptionController.text,
+                FirebaseAuth.instance.currentUser!.email!);
             product.createProduct();
+            print(product.imgsLinks);
           }),
     );
   }
@@ -129,35 +132,81 @@ class _CreateProductState extends State<CreateProduct> {
       Padding(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
           child: Row(children: [
-            Expanded(
-              child: ScrollConfiguration(
-                  behavior: MyBehavior(),
-                  child: Expanded(
-                      child: GridView.count(
-                    padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
-                    shrinkWrap: true,
-                    crossAxisCount: 3,
-                    children: List.generate(localImgPaths.length + 1,
-                        (index) => getPicPreviews(index)),
-                  ))),
-            )
+            ScrollConfiguration(
+                behavior: MyBehavior(),
+                child: Expanded(
+                    child: GridView.count(
+                  padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                  crossAxisSpacing: 5,
+                  mainAxisSpacing: 5,
+                  shrinkWrap: true,
+                  crossAxisCount: 3,
+                  children: List.generate(localImgPaths.length + 1,
+                      (index) => getPicPreviews(index)),
+                ))),
           ]))
     ]);
   }
 
   Widget getPicPreviews(int index) {
+    print(index);
     if (index < localImgPaths.length) {
       print(localImgPaths[index]);
-      return Image.file(File(localImgPaths[index]));
-    } else
+      return Image.file(
+        File(localImgPaths[index]),
+      );
+    } else {
       (index == localImgPaths.length);
+    }
     return ElevatedButton.icon(
-      onPressed: () => openCam(),
+      onPressed: () async {
+        WidgetsFlutterBinding.ensureInitialized();
+
+        final cameras = await availableCameras();
+        // Get a specific camera from the list of available cameras.
+        final firstCamera = cameras.first;
+
+        var path = await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => TakePictureScreen(
+                    camera: firstCamera,
+                  )),
+        );
+        print("${path} product manager");
+        setState(() {
+          localImgPaths.add(path);
+        });
+      },
       icon: const Icon(Icons.add_a_photo_outlined),
       label: const Text("resim ekle"),
     );
     throw const Text("upload error!");
+  }
+
+  Future<Map> uploadImgs(List<String> paths) async {
+    final imgLinks = {"0": "1"};
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    for (var i = 0; i < localImgPaths.length; i++) {
+      File file = File(paths[i]);
+      final ref =
+          FirebaseStorage.instance.ref().child("images/${file.hashCode}}");
+      UploadTask uploadtask = ref.putFile(file);
+
+      String url = "";
+      await uploadtask.whenComplete(() async {
+        url = await ref.getDownloadURL();
+      });
+
+      imgLinks["$i"] = url;
+    }
+    return imgLinks;
   }
 }
