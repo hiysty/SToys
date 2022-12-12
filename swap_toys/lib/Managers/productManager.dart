@@ -207,6 +207,9 @@ class _CreateProductState extends State<CreateProduct> {
 
       imgLinks["$i"] = url;
     }
+    Navigator.pop(context);
+    Navigator.pop(context);
+
     return imgLinks;
   }
 }

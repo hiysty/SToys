@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
@@ -46,6 +47,18 @@ class AppPage extends StatefulWidget {
 
 class _AppPageState extends State<AppPage> {
   int currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final docProduct = FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.email);
+    final json = {
+      "email": FirebaseAuth.instance.currentUser!.email,
+    };
+    docProduct.set(json);
+  }
 
   final screens = [
     HomePage(),

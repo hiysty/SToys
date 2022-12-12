@@ -21,7 +21,11 @@ class Product {
   }
 
   Future createProduct() async {
-    final docProduct = FirebaseFirestore.instance.collection("products").doc();
+    final docProduct = FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.email)
+        .collection("products")
+        .doc();
 
     final json = {
       "title": title,

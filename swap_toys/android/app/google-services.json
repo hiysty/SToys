@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "1029585338727",
-    "project_id": "sh-toys",
-    "storage_bucket": "sh-toys.appspot.com"
+    "project_number": "917322830895",
+    "project_id": "swap-your-toys-sh",
+    "storage_bucket": "swap-your-toys-sh.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1029585338727:android:736fe749cfc44e36ea2fc2",
+        "mobilesdk_app_id": "1:917322830895:android:750aef45174279cea2a2da",
         "android_client_info": {
           "package_name": "com.example.swap_toys"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1029585338727-0ar60eug0m1h85di87e7bcf53pkarab3.apps.googleusercontent.com",
+          "client_id": "917322830895-5kl9lp992j439pm7tsa04h4dq5ble5hi.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA0_rp-CpmJrSu6xMUq98s7E6O9nmlOoP8"
+          "current_key": "AIzaSyAj_MQto7vZ8jkKG7daxMIAjJ-ZknB6Jw0"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1029585338727-0ar60eug0m1h85di87e7bcf53pkarab3.apps.googleusercontent.com",
+              "client_id": "917322830895-5kl9lp992j439pm7tsa04h4dq5ble5hi.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

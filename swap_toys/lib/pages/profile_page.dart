@@ -61,7 +61,7 @@ class AccountPage extends StatelessWidget {
               const CircleAvatar(
                   radius: 60,
                   backgroundImage: NetworkImage(
-                      "https://firebasestorage.googleapis.com/v0/b/swapurtoys.appspot.com/o/files%2Fimages?alt=media&token=48262b6e-3593-44f5-9de2-0a5bfefdc128")),
+                      "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),
               const SizedBox(width: 18),
               Expanded(
                   child: Text(
