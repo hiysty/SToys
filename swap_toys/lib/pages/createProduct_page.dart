@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
-import '../pages/profile_page.dart';
-import 'cameraManager.dart';
+import 'package:swap_toys/models/user.dart';
+import 'profile_page.dart';
+import '../Managers/cameraManager.dart';
 import 'dart:async';
 import 'package:camera/camera.dart';
 
@@ -117,7 +119,6 @@ class _CreateProductState extends State<CreateProduct> {
                 descriptionController.text,
                 FirebaseAuth.instance.currentUser!.email!);
             product.createProduct();
-            print(product.imgsLinks);
           }),
     );
   }

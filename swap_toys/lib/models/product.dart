@@ -1,8 +1,9 @@
-import 'dart:io';
-import 'dart:ui';
+import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:swap_toys/models/user.dart';
 
 class Product {
   late String title;
@@ -10,6 +11,7 @@ class Product {
   late Map imgsLinks;
   late String description;
   late String email;
+  late user User_ = user("vx", "v");
 
   Product(String title, int status, Map imgLinks, String description,
       String email) {
@@ -36,4 +38,7 @@ class Product {
     };
     await docProduct.set(json);
   }
+
+  static Product fromJson(var doc) => Product(
+      doc["title"], doc["status"], doc["imgList"], doc["desc"], doc["email"]);
 }

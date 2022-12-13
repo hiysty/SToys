@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
 
-import '../Managers/productManager.dart';
+import 'createProduct_page.dart';
 
 //profil
 
@@ -31,13 +33,6 @@ class _ProfilePageState extends State<ProfilePage> {
               }));
             }));
   }
-
-  /*Stream<List<Product>> readUsers() => FirebaseFirestore.instance
-      .collection("products")
-      .snapshots()
-      .map((snapshot) =>
-          snapshot.docs.map((doc) => Product.fromJson(doc.data())));
-  */
 }
 
 class MyBehavior extends ScrollBehavior {
@@ -53,6 +48,7 @@ class AccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(User_.productCount);
     return Column(children: [
       Padding(
           padding: const EdgeInsets.fromLTRB(30, 30, 30, 20),

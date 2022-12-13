@@ -7,10 +7,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:swap_toys/models/product.dart';
+import 'package:swap_toys/models/user.dart';
 import 'package:swap_toys/pages/search_page.dart';
 import 'package:swap_toys/pages/home_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 
+late user User_;
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -19,6 +22,7 @@ Future main() async {
 }
 
 final navigatorKey = GlobalKey<NavigatorState>();
+final displayName = TextEditingController();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -39,8 +43,8 @@ class MyApp extends StatelessWidget {
 
 class AppPage extends StatefulWidget {
   const AppPage({super.key, required this.title});
-
   final String title;
+
   @override
   State<AppPage> createState() => _AppPageState();
 }
@@ -49,15 +53,8 @@ class _AppPageState extends State<AppPage> {
   int currentIndex = 0;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
-    final docProduct = FirebaseFirestore.instance
-        .collection("users")
-        .doc(FirebaseAuth.instance.currentUser!.email);
-    final json = {
-      "email": FirebaseAuth.instance.currentUser!.email,
-    };
-    docProduct.set(json);
   }
 
   final screens = [
@@ -68,6 +65,28 @@ class _AppPageState extends State<AppPage> {
 
   @override
   Widget build(BuildContext context) {
+    void getProductCount() {
+      var userId = FirebaseAuth.instance.currentUser!.email;
+      var productsRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('products');
+
+// Get the number of documents in the "products" collection
+      productsRef.get().then((snapshot) {
+        User_.productCount = snapshot.size;
+      });
+    }
+
+    User_ = user(displayName.text, FirebaseAuth.instance.currentUser!.email!);
+
+    var ref = FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.email);
+    ref.snapshots().listen((snapshot) {
+      if (!snapshot.exists) User_.saveUser();
+    });
+
     return Scaffold(
       body: screens[currentIndex],
       bottomNavigationBar: GNav(
@@ -171,50 +190,50 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   }
 
   @override
-  Widget build(BuildContext context) => isEmailVerified!
-      ? const AppPage(
-          title: "app",
-        )
-      : Scaffold(
-          appBar: AppBar(
-            title: const Text("E-posta doğrulama"),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "e-postanıze bir doğrulama postası gönderilmiştir !",
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                    ),
-                    icon: const Icon(Icons.mail, size: 32),
-                    label: const Text(
-                      "Postayı tekrar gönder",
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    onPressed: canResendEmail ? sendVerificationEmail : null),
-                const SizedBox(
-                  height: 8,
-                ),
-                TextButton(
-                    style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50)),
-                    child:
-                        const Text("İptal et", style: TextStyle(fontSize: 24)),
-                    onPressed: () {
-                      FirebaseAuth.instance.signOut();
-                      timer?.cancel();
-                    })
-              ],
+  Widget build(BuildContext context) {
+    return isEmailVerified!
+        ? const AppPage(title: "app page")
+        : Scaffold(
+            appBar: AppBar(
+              title: const Text("E-posta doğrulama"),
             ),
-          ));
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "e-postanıze bir doğrulama postası gönderilmiştir !",
+                    style: TextStyle(fontSize: 20),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                      ),
+                      icon: const Icon(Icons.mail, size: 32),
+                      label: const Text(
+                        "Postayı tekrar gönder",
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      onPressed: canResendEmail ? sendVerificationEmail : null),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  TextButton(
+                      style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(50)),
+                      child: const Text("İptal et",
+                          style: TextStyle(fontSize: 24)),
+                      onPressed: () {
+                        FirebaseAuth.instance.signOut();
+                        timer?.cancel();
+                      })
+                ],
+              ),
+            ));
+  }
 }
 
 class AuthPage extends StatefulWidget {
@@ -251,6 +270,7 @@ class SignUpWidget extends StatefulWidget {
 class _SignUpWidgetState extends State<SignUpWidget> {
   final formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
+
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
@@ -283,6 +303,16 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                     email != null && !EmailValidator.validate(email)
                         ? "Enter a valid email"
                         : null,
+              ),
+              const SizedBox(height: 4),
+              TextFormField(
+                controller: displayName,
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(labelText: "Kullanıcı adı"),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: ((value) => value != null && value.length < 6
+                    ? "Enter min. 2 character"
+                    : null),
               ),
               const SizedBox(height: 4),
               TextFormField(
@@ -352,6 +382,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
     } on FirebaseAuthException catch (e) {
       Utils.showSnackBar(e.message, Colors.red);
     }
+
     navigatorKey.currentState!.popUntil((route) => route.isFirst);
   }
 }

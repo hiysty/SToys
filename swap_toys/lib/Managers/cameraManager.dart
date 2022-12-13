@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:swap_toys/Managers/productManager.dart';
+import 'package:swap_toys/pages/createProduct_page.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:swap_toys/Managers/productManager.dart';
+import 'package:swap_toys/pages/createProduct_page.dart';
 
 Future<void> openCam() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
