@@ -43,12 +43,19 @@ class MyBehavior extends ScrollBehavior {
   }
 }
 
-class AccountPage extends StatelessWidget {
-  const AccountPage({super.key});
+class AccountPage extends StatefulWidget {
+  @override
+  State<AccountPage> createState() => _AccountPageState();
+}
+
+class _AccountPageState extends State<AccountPage> {
+  var collectionRef = FirebaseFirestore.instance
+      .collection("users")
+      .doc(FirebaseAuth.instance.currentUser!.email)
+      .collection("products");
 
   @override
   Widget build(BuildContext context) {
-    print(User_.productCount);
     return Column(children: [
       Padding(
           padding: const EdgeInsets.fromLTRB(30, 30, 30, 20),
@@ -69,15 +76,34 @@ class AccountPage extends StatelessWidget {
       Expanded(
         child: ScrollConfiguration(
             behavior: MyBehavior(),
-            child: GridView.count(
-              padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-              crossAxisSpacing: 5,
-              mainAxisSpacing: 5,
-              shrinkWrap: true,
-              crossAxisCount: 3,
-              children: List.generate(25, (index) => const ProductGrid()),
-            )),
+            child: StreamBuilder<List<Product>>(
+                stream: readProducts(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Bir şeyler yanlış gitti! ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    return GridView.count(
+                      padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                      crossAxisSpacing: 5,
+                      mainAxisSpacing: 5,
+                      shrinkWrap: true,
+                      crossAxisCount: 3,
+                      children: List.generate(snapshot.data!.length, (index) {
+                        print(index);
+                        return ProductGrid(index + 1);
+                      }),
+                    );
+                  } else {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                })),
       )
     ]);
   }
+
+  Stream<List<Product>> readProducts() =>
+      collectionRef.snapshots().map((snapshot) =>
+          snapshot.docs.map((doc) => Product.fromJson(doc.data())).toList());
 }

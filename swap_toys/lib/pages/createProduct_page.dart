@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +20,45 @@ const List<String> statusList = <String>[
 ];
 
 class ProductGrid extends StatelessWidget {
-  const ProductGrid({super.key});
+  int index;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.purple,
-    );
+    return FutureBuilder<String?>(
+        future: readProductImage(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            String imgLink = snapshot.data.toString();
+            return Container(
+              decoration: new BoxDecoration(
+                  image: new DecorationImage(
+                      image: NetworkImage(imgLink),
+                      fit: BoxFit.fitWidth,
+                      alignment: FractionalOffset.topCenter)),
+            );
+          } else if (snapshot.hasError) {
+            // Return a different widget to display an error message
+            return Text("something went wrong");
+          } else {
+            return CircularProgressIndicator();
+          }
+        });
+  }
+
+  ProductGrid(this.index);
+
+  Future<String?> readProductImage() async {
+    final docRef = FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.email)
+        .collection("products")
+        .doc(index.toString());
+    String imgURL = "";
+    await docRef.get().then((snapshot) {
+      imgURL = snapshot.data()!["displayImg"].toString();
+    });
+    print(imgURL);
+    return imgURL;
   }
 }
 
@@ -117,7 +151,8 @@ class _CreateProductState extends State<CreateProduct> {
                 statuValue,
                 await uploadImgs(localImgPaths),
                 descriptionController.text,
-                FirebaseAuth.instance.currentUser!.email!);
+                FirebaseAuth.instance.currentUser!.email!,
+                await getFirstImg());
             product.createProduct();
           }),
     );
@@ -212,5 +247,27 @@ class _CreateProductState extends State<CreateProduct> {
     Navigator.pop(context);
 
     return imgLinks;
+  }
+
+  Future<String> getFirstImg() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    File file = File(localImgPaths[0]);
+    final ref =
+        FirebaseStorage.instance.ref().child("images/${file.hashCode}}");
+    UploadTask uploadtask = ref.putFile(file);
+
+    String url = "";
+    await uploadtask.whenComplete(() async {
+      url = await ref.getDownloadURL();
+    });
+
+    return url;
   }
 }

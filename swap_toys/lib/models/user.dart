@@ -12,8 +12,8 @@ class user {
     this.email = email;
   }
 
-  static Product fromJson(var doc) => Product(
-      doc["title"], doc["status"], doc["imgList"], doc["desc"], doc["email"]);
+  static Product fromJson(var doc) => Product(doc["title"], doc["status"],
+      doc["imgList"], doc["desc"], doc["email"], doc["displayImg"]);
 
   Future saveUser() async {
     final docProduct = FirebaseFirestore.instance
