@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
+import 'package:swap_toys/pages/inspectProduct_page.dart';
 
 import 'createProduct_page.dart';
 
@@ -82,6 +83,7 @@ class _AccountPageState extends State<AccountPage> {
                   if (snapshot.hasError) {
                     return Text('Bir şeyler yanlış gitti! ${snapshot.error}');
                   } else if (snapshot.hasData) {
+                    User_.userProducts = snapshot.data!;
                     return GridView.count(
                       padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
                       crossAxisSpacing: 5,
@@ -89,8 +91,8 @@ class _AccountPageState extends State<AccountPage> {
                       shrinkWrap: true,
                       crossAxisCount: 3,
                       children: List.generate(snapshot.data!.length, (index) {
-                        print(index);
-                        return ProductGrid(index + 1);
+                        return ProductGrid(
+                            snapshot.data![index], index.toString());
                       }),
                     );
                   } else {
@@ -106,4 +108,32 @@ class _AccountPageState extends State<AccountPage> {
   Stream<List<Product>> readProducts() =>
       collectionRef.snapshots().map((snapshot) =>
           snapshot.docs.map((doc) => Product.fromJson(doc.data())).toList());
+}
+
+class ProductGrid extends StatelessWidget {
+  Product product;
+  String id;
+  ProductGrid(this.product, this.id, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    product.id = id;
+    return InkWell(
+      child: Container(
+        decoration: new BoxDecoration(
+            image: new DecorationImage(
+                image: NetworkImage(product.imgLinksURLs[0]),
+                fit: BoxFit.fitWidth,
+                alignment: FractionalOffset.topCenter)),
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => inspectProductPage(
+                    product: product,
+                  )),
+        );
+      },
+    );
+  }
 }

@@ -19,49 +19,6 @@ const List<String> statusList = <String>[
   'Kutusu Açılmamış'
 ];
 
-class ProductGrid extends StatelessWidget {
-  int index;
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-        future: readProductImage(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            String imgLink = snapshot.data.toString();
-            return Container(
-              decoration: new BoxDecoration(
-                  image: new DecorationImage(
-                      image: NetworkImage(imgLink),
-                      fit: BoxFit.fitWidth,
-                      alignment: FractionalOffset.topCenter)),
-            );
-          } else if (snapshot.hasError) {
-            // Return a different widget to display an error message
-            return Text("something went wrong");
-          } else {
-            return CircularProgressIndicator();
-          }
-        });
-  }
-
-  ProductGrid(this.index);
-
-  Future<String?> readProductImage() async {
-    final docRef = FirebaseFirestore.instance
-        .collection("users")
-        .doc(FirebaseAuth.instance.currentUser!.email)
-        .collection("products")
-        .doc(index.toString());
-    String imgURL = "";
-    await docRef.get().then((snapshot) {
-      imgURL = snapshot.data()!["displayImg"].toString();
-    });
-    print(imgURL);
-    return imgURL;
-  }
-}
-
 Future<void> CreateProductFunc(String path) async {
   runApp(
     MaterialApp(
@@ -147,12 +104,12 @@ class _CreateProductState extends State<CreateProduct> {
           child: const Icon(Icons.upload),
           onPressed: () async {
             Product product = Product(
-                titleController.text,
-                statuValue,
-                await uploadImgs(localImgPaths),
-                descriptionController.text,
-                FirebaseAuth.instance.currentUser!.email!,
-                await getFirstImg());
+              titleController.text,
+              statuValue,
+              await uploadImgs(localImgPaths),
+              descriptionController.text,
+              FirebaseAuth.instance.currentUser!.email!,
+            );
             product.createProduct();
           }),
     );
@@ -185,7 +142,6 @@ class _CreateProductState extends State<CreateProduct> {
   }
 
   Widget getPicPreviews(int index) {
-    print(index);
     if (index < localImgPaths.length) {
       print(localImgPaths[index]);
       return Image.file(
@@ -209,7 +165,6 @@ class _CreateProductState extends State<CreateProduct> {
                     camera: firstCamera,
                   )),
         );
-        print("${path} product manager");
         setState(() {
           localImgPaths.add(path);
         });
@@ -221,7 +176,7 @@ class _CreateProductState extends State<CreateProduct> {
   }
 
   Future<Map> uploadImgs(List<String> paths) async {
-    final imgLinks = {"0": "1"};
+    final Links = {"0": "1"};
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -241,33 +196,11 @@ class _CreateProductState extends State<CreateProduct> {
         url = await ref.getDownloadURL();
       });
 
-      imgLinks["$i"] = url;
+      Links["$i"] = url;
     }
     Navigator.pop(context);
     Navigator.pop(context);
 
-    return imgLinks;
-  }
-
-  Future<String> getFirstImg() async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    File file = File(localImgPaths[0]);
-    final ref =
-        FirebaseStorage.instance.ref().child("images/${file.hashCode}}");
-    UploadTask uploadtask = ref.putFile(file);
-
-    String url = "";
-    await uploadtask.whenComplete(() async {
-      url = await ref.getDownloadURL();
-    });
-
-    return url;
+    return Links;
   }
 }

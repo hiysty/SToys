@@ -5,15 +5,12 @@ import 'package:swap_toys/models/product.dart';
 class user {
   late String displayName;
   late String email;
-  late Future<List<Product>> userProducts;
-  late int productCount = 2;
+  late List<Product> userProducts;
+
   user(String displayName, String email) {
     this.displayName = displayName;
     this.email = email;
   }
-
-  static Product fromJson(var doc) => Product(doc["title"], doc["status"],
-      doc["imgList"], doc["desc"], doc["email"], doc["displayImg"]);
 
   Future saveUser() async {
     final docProduct = FirebaseFirestore.instance

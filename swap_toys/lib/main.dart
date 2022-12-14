@@ -73,9 +73,6 @@ class _AppPageState extends State<AppPage> {
           .collection('products');
 
 // Get the number of documents in the "products" collection
-      productsRef.get().then((snapshot) {
-        User_.productCount = snapshot.size;
-      });
     }
 
     User_ = user(displayName.text, FirebaseAuth.instance.currentUser!.email!);
