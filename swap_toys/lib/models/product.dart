@@ -84,6 +84,16 @@ class Product {
     return imgLinks_;
   }
 
+  Map listToMap(List<String> URLs) {
+    Map imageListMap = {};
+
+    for (var i = 0; i < URLs.length; i++) {
+      imageListMap["$i"] = URLs[i];
+    }
+
+    return imageListMap;
+  }
+
   Future<Map> PathsToLinks(List<String> paths) async {
     final imgLinks = {"0": "1"};
 

@@ -144,8 +144,12 @@ class _CreateProductState extends State<CreateProduct> {
   Widget getPicPreviews(int index) {
     if (index < localImgPaths.length) {
       print(localImgPaths[index]);
-      return Image.file(
-        File(localImgPaths[index]),
+      return Container(
+        decoration: new BoxDecoration(
+            image: new DecorationImage(
+                image: FileImage(File(localImgPaths[index])),
+                fit: BoxFit.fitWidth,
+                alignment: FractionalOffset.topCenter)),
       );
     } else {
       (index == localImgPaths.length);

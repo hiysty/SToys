@@ -23,24 +23,33 @@ class UpdateProductState extends State<UpdateProduct> {
   @override
   UpdateProductState(this.productUpdate_);
   Product productUpdate_;
+  late Product localProduct;
 
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  String? dropdownValue;
+  List<String>? imgLinks;
 
   static late List<String> localImgPaths_ = [];
+
+  @override
+  void initState() {
+    super.initState();
+    localProduct = productUpdate_;
+    titleController.text = localProduct.title;
+    descriptionController.text = localProduct.description;
+    dropdownValue = statusList[localProduct.status];
+    imgLinks = localProduct.imgLinksURLs;
+  }
+
   // ignore: empty_constructor_bodies
   @override
   Widget build(BuildContext context) {
-    String dropdownValue = statusList[productUpdate_.status];
-    titleController.text = productUpdate_.title;
-    descriptionController.text = productUpdate_.description;
-
-    List<String> imgLinks = productUpdate_.imgLinksURLs;
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
+            localImgPaths_ = [];
             Navigator.pop(context);
           },
           icon: const Icon(Icons.arrow_back_ios),
@@ -58,16 +67,19 @@ class UpdateProductState extends State<UpdateProduct> {
                   border: OutlineInputBorder(),
                   labelText: 'Ürün Adı',
                 ),
+                onChanged: (value) => localProduct.title = value,
               ),
               const SizedBox(height: 10),
               TextField(
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null,
-                  minLines: 3,
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Ürün Açıklaması (İsteğe Bağlı)')),
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                minLines: 3,
+                controller: descriptionController,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Ürün Açıklaması (İsteğe Bağlı)'),
+                onChanged: (value) => localProduct.description = value,
+              ),
               const SizedBox(height: 10),
               DropdownButtonFormField(
                   decoration: const InputDecoration(
@@ -81,14 +93,14 @@ class UpdateProductState extends State<UpdateProduct> {
                   },
                   items:
                       statusList.map<DropdownMenuItem<String>>((String value) {
-                    productUpdate_.status = statusList.indexOf(value);
+                    localProduct.status = statusList.indexOf(value);
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
                     );
                   }).toList()),
               const SizedBox(height: 10),
-              takenPics_Update(localImgPaths_, imgLinks)
+              takenPics_Update(localImgPaths_, imgLinks!)
             ],
           )),
       floatingActionButton: FloatingActionButton(
@@ -103,8 +115,9 @@ class UpdateProductState extends State<UpdateProduct> {
               ),
             );
 
-            imgLinks.addAll(productUpdate_.mapToListForImgLinks(
-                productUpdate_.PathsToLinks(localImgPaths_)));
+            update_Button(imgLinks);
+            Navigator.pop(context);
+            Navigator.pop(context);
           }),
     );
   }
@@ -145,10 +158,20 @@ class UpdateProductState extends State<UpdateProduct> {
             ImgPaths.length.toString() +
             index.toString());
     if (index <= ImgLinks.length - 1) {
-      return Image.network(ImgLinks[index]);
+      return Container(
+        decoration: new BoxDecoration(
+            image: new DecorationImage(
+                image: NetworkImage(ImgLinks[index]),
+                fit: BoxFit.fitWidth,
+                alignment: FractionalOffset.topCenter)),
+      );
     } else if (index <= ImgLinks.length + ImgPaths.length - 1) {
-      return Image.file(
-        File(ImgPaths[index - ImgLinks.length]),
+      return Container(
+        decoration: new BoxDecoration(
+            image: new DecorationImage(
+                image: FileImage(File(ImgPaths[index - ImgLinks.length])),
+                fit: BoxFit.fitWidth,
+                alignment: FractionalOffset.topCenter)),
       );
     } else if (ImgLinks.length + ImgPaths.length == index) {
       return ElevatedButton.icon(
@@ -179,7 +202,19 @@ class UpdateProductState extends State<UpdateProduct> {
     throw const Text("upload error!");
   }
 
-  void update_Button(List<String> paths) {}
+  void update_Button(List<String>? links) async {
+    Map? map;
+
+    await localProduct.PathsToLinks(localImgPaths_).then((map_) {
+      map = map_;
+    });
+    imgLinks!.addAll(localProduct.mapToListForImgLinks(map));
+
+    localProduct.imgsLinksMap = localProduct.listToMap(links!);
+    print("update button called");
+
+    localProduct.updateProduct();
+  }
 }
 
 class MyBehaviorUpdate extends ScrollBehavior {

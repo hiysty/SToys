@@ -27,6 +27,16 @@ class inspectProductPageState extends State<inspectProductPage> {
     });
     print(images.toString() + "that is value");
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back_ios),
+        ),
+        title: const Text("Ürünü İncele"),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -40,17 +50,17 @@ class inspectProductPageState extends State<inspectProductPage> {
             SizedBox(
               height: 20,
             ),
-            Text("Başlık :" + product_.title,
+            Text("Başlık: " + product_.title,
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 20)),
             SizedBox(
               height: 10,
             ),
-            Text("Açıklama :" + product_.description,
+            Text("Açıklama: " + product_.description,
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 20)),
             SizedBox(
               height: 10,
             ),
-            Text("Durum :" + statusList[product_.status],
+            Text("Durum: " + statusList[product_.status],
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 20)),
             SizedBox(
               height: 20,
@@ -64,7 +74,7 @@ class inspectProductPageState extends State<inspectProductPage> {
                   );
                 },
                 child: Text(
-                  "Update",
+                  "Ürünü Güncelle",
                   style: TextStyle(fontSize: 20),
                 )),
           ],
