@@ -77,9 +77,7 @@ class _AppPageState extends State<AppPage> {
 
     User_ = user(displayName.text, FirebaseAuth.instance.currentUser!.email!);
 
-    var ref = FirebaseFirestore.instance
-        .collection("users")
-        .doc(FirebaseAuth.instance.currentUser!.email);
+    var ref = FirebaseFirestore.instance.collection("users").doc(User_.email);
     ref.snapshots().listen((snapshot) {
       if (!snapshot.exists) User_.saveUser();
     });

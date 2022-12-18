@@ -10,34 +10,33 @@ import 'package:swap_toys/pages/inspectProduct_page.dart';
 import 'createProduct_page.dart';
 
 //profil
+late String userInspectorMail;
 
 class ProfilePage extends StatefulWidget {
-  late String userMail;
-
   ProfilePage(String mail) {
-    userMail = mail;
+    userInspectorMail = mail;
   }
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState(userMail);
+  State<ProfilePage> createState() => _ProfilePageState(userInspectorMail);
 }
 
 class _ProfilePageState extends State<ProfilePage> {
   late String userMail;
-  bool showAdd = false;
+  bool isUserProfile = false;
 
   _ProfilePageState(String currentUserMail) {
     userMail = currentUserMail;
 
-    if (userMail == FirebaseAuth.instance.currentUser!.email!) {
-      showAdd = true;
+    if (userMail == User_.email) {
+      isUserProfile = true;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: showAdd
+        appBar: isUserProfile
             ? null
             : AppBar(
                 leading: IconButton(
@@ -47,7 +46,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
         body: AccountPage(userMail),
         floatingActionButton: Visibility(
-            visible: showAdd,
+            visible: isUserProfile,
             child: FloatingActionButton(
                 backgroundColor: Colors.blue,
                 child: const Icon(Icons.add),
@@ -85,7 +84,7 @@ class _AccountPageState extends State<AccountPage> {
 
   var collectionRef = FirebaseFirestore.instance
       .collection("users")
-      .doc(FirebaseAuth.instance.currentUser!.email)
+      .doc(User_.email)
       .collection("products");
 
   Future<String> readDisplayName(String mail) async {
@@ -189,8 +188,7 @@ class ProductGrid extends StatelessWidget {
           context,
           MaterialPageRoute(
               builder: (context) => inspectProductPage(
-                    product: product,
-                  )),
+                  product: product, email: userInspectorMail)),
         );
       },
     );

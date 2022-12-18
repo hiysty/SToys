@@ -108,7 +108,7 @@ class _CreateProductState extends State<CreateProduct> {
               statuValue,
               await uploadImgs(localImgPaths),
               descriptionController.text,
-              FirebaseAuth.instance.currentUser!.email!,
+              User_.email,
             );
             product.createProduct();
           }),

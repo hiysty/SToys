@@ -1,22 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
+import 'package:swap_toys/models/user.dart';
 import 'package:swap_toys/pages/createProduct_page.dart';
+import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/pages/updateProduct_page.dart';
 
 class inspectProductPage extends StatefulWidget {
-  const inspectProductPage({
-    super.key,
-    required this.product,
-  });
+  const inspectProductPage(
+      {super.key, required this.product, required this.email});
   final Product product;
+  final String email;
 
   @override
-  inspectProductPageState createState() => inspectProductPageState(product);
+  inspectProductPageState createState() =>
+      inspectProductPageState(product, email);
 }
 
 class inspectProductPageState extends State<inspectProductPage> {
-  inspectProductPageState(this.product_);
+  inspectProductPageState(this.product_, this.email_);
   Product product_;
+  String email_;
   List<Widget> images = [];
   @override
   Widget build(BuildContext context) {
@@ -65,18 +70,20 @@ class inspectProductPageState extends State<inspectProductPage> {
             SizedBox(
               height: 20,
             ),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => UpdateProduct(product_)),
-                  );
-                },
-                child: Text(
-                  "Ürünü Güncelle",
-                  style: TextStyle(fontSize: 20),
-                )),
+            Visibility(
+                visible: email_ == User_.email,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => UpdateProduct(product_)),
+                      );
+                    },
+                    child: Text(
+                      "Ürünü Güncelle",
+                      style: TextStyle(fontSize: 20),
+                    ))),
           ],
         ),
       ),
