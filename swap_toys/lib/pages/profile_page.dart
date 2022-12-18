@@ -12,27 +12,50 @@ import 'createProduct_page.dart';
 //profil
 
 class ProfilePage extends StatefulWidget {
-  static final user = FirebaseAuth.instance.currentUser!;
+  late String userMail;
 
-  const ProfilePage({super.key});
+  ProfilePage(String mail) {
+    userMail = mail;
+  }
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState(userMail);
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late String userMail;
+  bool showAdd = false;
+
+  _ProfilePageState(String currentUserMail) {
+    userMail = currentUserMail;
+
+    if (userMail == FirebaseAuth.instance.currentUser!.email!) {
+      showAdd = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: AccountPage(),
-        floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.blue,
-            child: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return CreateProduct();
-              }));
-            }));
+        appBar: showAdd
+            ? null
+            : AppBar(
+                leading: IconButton(
+                    icon: Icon(Icons.arrow_back_ios),
+                    onPressed: () => Navigator.pop(context)),
+                title: Text('Profil'),
+              ),
+        body: AccountPage(userMail),
+        floatingActionButton: Visibility(
+            visible: showAdd,
+            child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                child: const Icon(Icons.add),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return CreateProduct();
+                  }));
+                })));
   }
 }
 
@@ -45,15 +68,36 @@ class MyBehavior extends ScrollBehavior {
 }
 
 class AccountPage extends StatefulWidget {
+  late String userMail;
+  AccountPage(email) {
+    userMail = email;
+  }
+
   @override
-  State<AccountPage> createState() => _AccountPageState();
+  State<AccountPage> createState() => _AccountPageState(userMail);
 }
 
 class _AccountPageState extends State<AccountPage> {
+  late String userMail;
+  _AccountPageState(email) {
+    userMail = email;
+  }
+
   var collectionRef = FirebaseFirestore.instance
       .collection("users")
       .doc(FirebaseAuth.instance.currentUser!.email)
       .collection("products");
+
+  Future<String> readDisplayName(String mail) async {
+    final docRef = FirebaseFirestore.instance.collection('users').doc(mail);
+
+    late var data;
+    await docRef.get().then((DocumentSnapshot doc) {
+      data = doc.data() as Map<String, dynamic>;
+    });
+    print(data['displayName']);
+    return data['displayName'];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +112,21 @@ class _AccountPageState extends State<AccountPage> {
                       "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),
               const SizedBox(width: 18),
               Expanded(
-                  child: Text(
-                FirebaseAuth.instance.currentUser!.email!,
-                style: const TextStyle(fontSize: 18),
-              ))
+                child: FutureBuilder<String>(
+                  future: readDisplayName(userMail),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Text(
+                        snapshot.data!,
+                        style: TextStyle(fontSize: 18),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+                    return CircularProgressIndicator();
+                  },
+                ),
+              )
             ],
           )),
       Expanded(
@@ -105,8 +160,12 @@ class _AccountPageState extends State<AccountPage> {
     ]);
   }
 
-  Stream<List<Product>> readProducts() =>
-      collectionRef.snapshots().map((snapshot) =>
+  Stream<List<Product>> readProducts() => FirebaseFirestore.instance
+      .collection("users")
+      .doc(userMail)
+      .collection("products")
+      .snapshots()
+      .map((snapshot) =>
           snapshot.docs.map((doc) => Product.fromJson(doc.data())).toList());
 }
 

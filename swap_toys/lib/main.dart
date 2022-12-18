@@ -60,7 +60,7 @@ class _AppPageState extends State<AppPage> {
   final screens = [
     HomePage(),
     SearchPage(),
-    ProfilePage(),
+    ProfilePage(FirebaseAuth.instance.currentUser!.email!),
   ];
 
   @override
