@@ -24,6 +24,8 @@ Future main() async {
 final navigatorKey = GlobalKey<NavigatorState>();
 final displayName = TextEditingController();
 
+int currentPageIndex = 0;
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -50,8 +52,6 @@ class AppPage extends StatefulWidget {
 }
 
 class _AppPageState extends State<AppPage> {
-  int currentIndex = 0;
-
   @override
   initState() {
     super.initState();
@@ -83,11 +83,11 @@ class _AppPageState extends State<AppPage> {
     });
 
     return Scaffold(
-      body: screens[currentIndex],
+      body: screens[currentPageIndex],
       bottomNavigationBar: GNav(
         gap: 5,
-        onTabChange: (index) =>
-            setState(() => currentIndex != index ? currentIndex = index : null),
+        onTabChange: (index) => setState(
+            () => currentPageIndex != index ? currentPageIndex = index : null),
         tabs: const [
           GButton(
             icon: Icons.home,

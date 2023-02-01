@@ -94,7 +94,6 @@ class _AccountPageState extends State<AccountPage> {
     await docRef.get().then((DocumentSnapshot doc) {
       data = doc.data() as Map<String, dynamic>;
     });
-    print(data['displayName']);
     return data['displayName'];
   }
 
@@ -188,7 +187,7 @@ class ProductGrid extends StatelessWidget {
           context,
           MaterialPageRoute(
               builder: (context) => inspectProductPage(
-                  product: product, email: userInspectorMail)),
+                  product_: product, email_: userInspectorMail)),
         );
       },
     );

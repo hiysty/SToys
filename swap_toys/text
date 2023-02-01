@@ -1,0 +1,13 @@
+ itemCount: profileCountToShow < suggestions.length
+            ? profileCountToShow
+            : suggestions.length,
+        itemBuilder: ((context, index) {
+          final suggestion = suggestions[index];
+
+          return ListTile(
+            title: Text(suggestion.title),
+            onTap: () {
+              query = suggestion.title;
+            },
+          );
+        }));

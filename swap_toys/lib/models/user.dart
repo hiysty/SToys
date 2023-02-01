@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:swap_toys/models/product.dart';
@@ -24,11 +26,25 @@ class user {
     docProduct.set(json);
   }
 
-  // Stream<QuerySnapshot> requestCount() {
-  //   return FirebaseFirestore.instance
-  //       .collection("users")
-  //       .doc(email)
-  //       .collection("products")
-  //       .get().;
-  // }
+  Future<List<Product>> MyProducts(QueryDocumentSnapshot userSnapShot) async {
+    List<Product> myProducts_ = [];
+    var product = await userSnapShot.reference.collection("products").get();
+
+    myProducts_ = product.docs.map((e) => Product.fromJson(e.data())).toList();
+
+    return myProducts_;
+  }
+
+  bool isAboutMe(String query) {
+    List<String> words = this.displayName.split(" ");
+
+    for (var word in words) {
+      String word_ = word.toLowerCase();
+      String query_ = query.toLowerCase();
+
+      if (word_.contains(query_)) return true;
+    }
+
+    return false;
+  }
 }

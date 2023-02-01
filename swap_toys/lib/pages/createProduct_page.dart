@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
 import 'package:swap_toys/models/user.dart';
+import 'package:swap_toys/pages/inspectProduct_page.dart';
 import 'profile_page.dart';
 import '../Managers/cameraManager.dart';
 import 'dart:async';
@@ -48,8 +50,13 @@ class _CreateProductState extends State<CreateProduct> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
+          onPressed: () async {
             Navigator.pop(context);
+
+            Reference termsRef =
+                FirebaseStorage.instance.ref().child("searchTerms/terms.txt");
+            dynamic data = await termsRef.getData();
+            String termsText = utf8.decode(data);
           },
           icon: const Icon(Icons.arrow_back_ios),
         ),
@@ -143,7 +150,6 @@ class _CreateProductState extends State<CreateProduct> {
 
   Widget getPicPreviews(int index) {
     if (index < localImgPaths.length) {
-      print(localImgPaths[index]);
       return Container(
         decoration: new BoxDecoration(
             image: new DecorationImage(
@@ -206,5 +212,15 @@ class _CreateProductState extends State<CreateProduct> {
     Navigator.pop(context);
 
     return Links;
+  }
+
+  Future updateSearchTerms() async {
+    List<Product> products = [];
+
+    Reference termsRef =
+        FirebaseStorage.instance.ref().child("searchTerms/terms.txt");
+    dynamic data = await termsRef.getData();
+    String termsText = utf8.decode(data);
+    String currentTags = "";
   }
 }
