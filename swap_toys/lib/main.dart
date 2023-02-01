@@ -90,8 +90,8 @@ class _AppPageState extends State<AppPage> {
             setState(() => currentIndex != index ? currentIndex = index : null),
         tabs: const [
           GButton(
-            icon: Icons.home,
-            text: 'Ana Sayfa',
+            icon: Icons.explore,
+            text: 'Keşfet',
           ),
           GButton(
             icon: Icons.search,
