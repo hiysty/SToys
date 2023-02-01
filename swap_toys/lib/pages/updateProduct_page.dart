@@ -152,11 +152,6 @@ class UpdateProductState extends State<UpdateProduct> {
 
   Widget getPicPreviews_update(
       int index, List<String> ImgLinks, List<String> ImgPaths) {
-    print(
-        "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||-" +
-            ImgLinks.length.toString() +
-            ImgPaths.length.toString() +
-            index.toString());
     if (index <= ImgLinks.length - 1) {
       return Container(
         decoration: new BoxDecoration(
@@ -211,7 +206,6 @@ class UpdateProductState extends State<UpdateProduct> {
     imgLinks!.addAll(localProduct.mapToListForImgLinks(map));
 
     localProduct.imgsLinksMap = localProduct.listToMap(links!);
-    print("update button called");
 
     localProduct.updateProduct();
   }

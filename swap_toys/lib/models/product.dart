@@ -16,6 +16,7 @@ class Product {
   late String email;
   late String firsImg;
   late String id;
+  List<dynamic> tags = [];
 
   late List<String> imgLinksURLs;
 
@@ -57,12 +58,14 @@ class Product {
     refProduct.update(toJson());
   }
 
-  Product.fromJson(Map<String, dynamic> doc) {
+  Product.fromJson(var doc) {
     this.title = doc["title"];
     this.status = doc["status"];
-    this.imgLinksURLs = mapToListForImgLinks(doc["imgList"]);
+    if (doc["imgList"] != null)
+      this.imgLinksURLs = mapToListForImgLinks(doc["imgList"]);
     this.description = doc["desc"];
     this.email = doc["email"];
+    if (doc["tags"] != null) this.tags = doc["tags"];
   }
   Map<String, dynamic> toJson() {
     final json = {
@@ -111,5 +114,20 @@ class Product {
       imgLinks["$i"] = url;
     }
     return imgLinks;
+  }
+
+  List<String> Terms() {
+    List<String> allWords = title.split(" ");
+    allWords.addAll(List<String>.from(tags));
+    return allWords;
+  }
+
+  bool isAboutMe(String query) {
+    for (String word in Terms()) {
+      final word_ = word.toLowerCase();
+      final query_ = query.toLowerCase();
+      if (word_.contains(query_)) return true;
+    }
+    return false;
   }
 }

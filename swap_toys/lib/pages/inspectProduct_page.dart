@@ -7,30 +7,33 @@ import 'package:swap_toys/pages/createProduct_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/pages/updateProduct_page.dart';
 
+late Product product;
+late String email;
+
 class inspectProductPage extends StatefulWidget {
   const inspectProductPage(
-      {super.key, required this.product, required this.email});
-  final Product product;
-  final String email;
+      {super.key, required this.product_, required this.email_});
+  final Product product_;
+  final String email_;
 
   @override
-  inspectProductPageState createState() =>
-      inspectProductPageState(product, email);
+  inspectProductPageState createState() {
+    product = product_;
+    email = email_;
+    return inspectProductPageState();
+  }
 }
 
 class inspectProductPageState extends State<inspectProductPage> {
-  inspectProductPageState(this.product_, this.email_);
-  Product product_;
-  String email_;
+  inspectProductPageState();
   List<Widget> images = [];
   @override
   Widget build(BuildContext context) {
-    getImagesViaUrl(product_.imgLinksURLs).then((value) {
+    getImagesViaUrl(product.imgLinksURLs).then((value) {
       setState(() {
         images = value;
       });
     });
-    print(images.toString() + "that is value");
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -55,35 +58,22 @@ class inspectProductPageState extends State<inspectProductPage> {
             SizedBox(
               height: 20,
             ),
-            Text("Başlık: " + product_.title,
+            Text("Başlık: " + product.title,
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 20)),
             SizedBox(
               height: 10,
             ),
-            Text("Açıklama: " + product_.description,
+            Text("Açıklama: " + product.description,
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 20)),
             SizedBox(
               height: 10,
             ),
-            Text("Durum: " + statusList[product_.status],
+            Text("Durum: " + statusList[product.status],
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 20)),
             SizedBox(
               height: 20,
             ),
-            Visibility(
-                visible: email_ == User_.email,
-                child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => UpdateProduct(product_)),
-                      );
-                    },
-                    child: Text(
-                      "Ürünü Güncelle",
-                      style: TextStyle(fontSize: 20),
-                    ))),
+            Update_offer_check(context)
           ],
         ),
       ),
@@ -103,4 +93,30 @@ Future<List<Widget>> getImagesViaUrl(List<String> UrlList) async {
   }
 
   return ImageWidgets;
+}
+
+Widget Update_offer_check(BuildContext context) {
+  Widget BTN;
+  if (email == User_.email) {
+    BTN = ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => UpdateProduct(product)),
+          );
+        },
+        child: Text(
+          "Ürünü Güncelle",
+          style: TextStyle(fontSize: 20),
+        ));
+  } else {
+    BTN = ElevatedButton(
+        onPressed: () {},
+        child: Text(
+          "Takas teklif et!",
+          style: TextStyle(fontSize: 20),
+        ));
+  }
+
+  return BTN;
 }
