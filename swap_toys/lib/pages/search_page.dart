@@ -8,6 +8,7 @@ import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/models/product.dart';
 import 'dart:async';
 import '../models/user.dart';
+import 'inspectProduct_page.dart';
 
 late Timer timer;
 List<Product> allProducts = [];
@@ -30,7 +31,7 @@ class SearchPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Ürün Ara"),
+        title: const Text("Ara"),
         actions: [
           IconButton(
               onPressed: () {
@@ -106,72 +107,94 @@ class CustomSearchDelegate extends SearchDelegate {
     return matcheds;
   }
 
+  Widget toySuggestionsWidget(List<Product> productSuggestions) {
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: productSuggestions.length + 1,
+        itemBuilder: ((context, index) {
+          if (index == 0)
+            return ListTile(
+              title: Text(
+                "Oyuncaklar",
+                style: TextStyle(fontSize: 20),
+                textAlign: TextAlign.center,
+              ),
+            );
+          else {
+            final suggestion = productSuggestions[index - 1];
+            return ListTile(
+              title: Text(suggestion.title),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => inspectProductPage(
+                          product_: suggestion, email_: suggestion.email)),
+                );
+                query = suggestion.title;
+              },
+            );
+          }
+        }));
+  }
+
+  Widget userSuggestionWidget(List<user> userSuggestions) {
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: userSuggestions.length + 1,
+        itemBuilder: ((context, index) {
+          if (index == 0)
+            return ListTile(
+              title: Text(
+                "Kullanıcılar",
+                style: TextStyle(fontSize: 20),
+                textAlign: TextAlign.center,
+              ),
+            );
+          else {
+            final suggestion = userSuggestions[index - 1];
+            return ListTile(
+              title: Text(suggestion.displayName),
+              onTap: () {
+                query = suggestion.displayName;
+              },
+            );
+          }
+        }));
+  }
+
   Widget buildSuggestionsSuccess(
       List<Product> productSuggestions, List<user> userSuggestions) {
-    int productCount = productCountToShow < productSuggestions.length
-        ? productCountToShow
-        : productSuggestions.length;
-    int userCount = userCountToShow < userSuggestions.length
-        ? userCountToShow
-        : userSuggestions.length;
-
-    int totalCount = productCount + userCount + 4;
-    return Expanded(
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: totalCount,
-            itemBuilder: ((context, index) {
-              if (index == 0)
-                return ListTile(
-                  title: Text(
-                    "Oyuncaklar",
-                    style: TextStyle(fontSize: 20),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              else if (0 < index && index <= productCount) {
-                final suggestion = productSuggestions[index - 1];
-                return ListTile(
-                  title: Text(suggestion.title),
-                  onTap: () {
-                    query = suggestion.title;
-                  },
-                );
-              } else if (index == productCount + 1)
-                return ListTile(
-                  leading: Icon(Icons.add),
-                  onTap: () {
-                    productCountToShow += 5;
-                    showSuggestions(context);
-                  },
-                );
-              else if (index == productCount + 2)
-                return ListTile(
-                  title: Text(
-                    "Kullanıcılar",
-                    style: TextStyle(fontSize: 20),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              else if (index > productCount + 2 &&
-                  index <= productCount + 2 + userCount) {
-                final suggestion = userSuggestions[index - productCount - 3];
-                return ListTile(
-                  title: Text(suggestion.displayName),
-                  onTap: () {
-                    query = suggestion.displayName;
-                  },
-                );
-              } else {
-                return ListTile(
-                  leading: Icon(Icons.add),
-                  onTap: () {
-                    userCountToShow += 5;
-                    showSuggestions(context);
-                  },
-                );
-              }
-            })));
+    return MaterialApp(
+      home: DefaultTabController(
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: PreferredSize(
+                preferredSize: Size.fromHeight(0),
+                child: Container(
+                  child: TabBar(tabs: [
+                    Tab(
+                        icon: Icon(
+                      Icons.toys_rounded,
+                      size: 40,
+                    )),
+                    Tab(
+                        icon: Icon(
+                      Icons.supervisor_account_rounded,
+                      size: 40,
+                    )),
+                  ]),
+                  height: 40,
+                )),
+          ),
+          body: TabBarView(children: [
+            toySuggestionsWidget(productSuggestions),
+            userSuggestionWidget(userSuggestions)
+          ]),
+        ),
+        length: 2,
+      ),
+    );
   }
 }
 
