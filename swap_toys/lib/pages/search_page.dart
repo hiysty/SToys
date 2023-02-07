@@ -17,7 +17,14 @@ List<user> allUsers = [];
 int productCountToShow = 5;
 int userCountToShow = 5;
 
-class SearchPage extends StatelessWidget {
+bool _hideAppBar = false;
+
+class SearchPage extends StatefulWidget {
+  @override
+  State<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     Timer.run(() async {
@@ -30,18 +37,20 @@ class SearchPage extends StatelessWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Ara"),
-        actions: [
-          IconButton(
-              onPressed: () {
-                FocusScope.of(context).unfocus();
-                final results = showSearch(
-                    context: context, delegate: CustomSearchDelegate());
-              },
-              icon: const Icon(Icons.search)),
-        ],
-      ),
+      appBar: _hideAppBar
+          ? null
+          : AppBar(
+              title: const Text("Ara"),
+              actions: [
+                IconButton(
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      final results = showSearch(
+                          context: context, delegate: CustomSearchDelegate());
+                    },
+                    icon: const Icon(Icons.search)),
+              ],
+            ),
     );
   }
 }
@@ -76,7 +85,8 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    return Text("yok");
+    FocusScope.of(context).unfocus();
+    return buildSuggestions(context);
   }
 
   @override
@@ -99,7 +109,6 @@ class CustomSearchDelegate extends SearchDelegate {
 
   List<user> getMatchedUsers(String query) {
     List<user> matcheds = [];
-    print("a");
     for (var user in allUsers) {
       print(user.displayName);
       if (user.isAboutMe(query)) matcheds.add(user);
@@ -125,6 +134,8 @@ class CustomSearchDelegate extends SearchDelegate {
             return ListTile(
               title: Text(suggestion.title),
               onTap: () {
+                _hideAppBar = true;
+                _SearchPageState();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -170,22 +181,18 @@ class CustomSearchDelegate extends SearchDelegate {
         child: Scaffold(
           appBar: AppBar(
             bottom: PreferredSize(
-                preferredSize: Size.fromHeight(0),
-                child: Container(
-                  child: TabBar(tabs: [
-                    Tab(
-                        icon: Icon(
-                      Icons.toys_rounded,
-                      size: 40,
-                    )),
-                    Tab(
-                        icon: Icon(
-                      Icons.supervisor_account_rounded,
-                      size: 40,
-                    )),
-                  ]),
-                  height: 40,
+              preferredSize: Size.fromHeight(0),
+              child: TabBar(tabs: [
+                Tab(
+                    icon: Icon(
+                  Icons.toys_rounded,
                 )),
+                Tab(
+                    icon: Icon(
+                  Icons.supervisor_account_rounded,
+                )),
+              ]),
+            ),
           ),
           body: TabBarView(children: [
             toySuggestionsWidget(productSuggestions),
