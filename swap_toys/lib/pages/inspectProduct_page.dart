@@ -7,6 +7,8 @@ import 'package:swap_toys/pages/createProduct_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/pages/updateProduct_page.dart';
 
+import 'exchange_page.dart';
+
 late Product product;
 late String email;
 
@@ -111,7 +113,10 @@ Widget Update_offer_check(BuildContext context) {
         ));
   } else {
     BTN = ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => ExchangePage(product)));
+        },
         child: Text(
           "Takas teklif et!",
           style: TextStyle(fontSize: 20),

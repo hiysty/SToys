@@ -50,8 +50,9 @@ dependencies:
 
   google_nav_bar: ^5.0.6
   image_picker: ^0.8.6
-  flutter_search_bar: ^2.1.0
 
+  flutter_svg: 
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -76,6 +77,54 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  fonts:
+    - family: Montserrat
+      fonts:
+      - asset: lib/assets/fonts/Montserrat-Black.ttf
+        weight: 900
+      - asset: lib/assets/fonts/Montserrat-BlackItalic.ttf
+        weight: 900
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-BoldItalic.ttf
+        weight: 700
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-ExtraBold.ttf
+        weight: 800
+      - asset: lib/assets/fonts/Montserrat-ExtraBoldItalic.ttf
+        weight: 800
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-ExtraLight.ttf
+        weight: 200
+      - asset: lib/assets/fonts/Montserrat-ExtraLightItalic.ttf
+        weight: 200
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-Italic.ttf
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-Italic-VariableFont_wght.ttf
+        weight: 100
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-LightItalic.ttf
+        weight: 300
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-Medium.ttf
+        weight: 500
+      - asset: lib/assets/fonts/Montserrat-MediumItalic.ttf
+        weight: 500
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-Regular.ttf
+      - asset: lib/assets/fonts/Montserrat-SemiBold.ttf
+        weight: 600
+      - asset: lib/assets/fonts/Montserrat-SemiBoldItalic.ttf
+        weight: 600
+        style: italic
+      - asset: lib/assets/fonts/Montserrat-VariableFont_wght.ttf
+        weight: 100
+
+
+
+  assets:
+    - lib/assets/images/exchange_icon.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
