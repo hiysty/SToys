@@ -139,7 +139,7 @@ class CustomSearchDelegate extends SearchDelegate {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => inspectProductPage(
+                      builder: (context) => InspectProductPage(
                           product_: suggestion, email_: suggestion.email)),
                 );
                 query = suggestion.title;

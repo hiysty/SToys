@@ -12,22 +12,22 @@ import 'exchange_page.dart';
 late Product product;
 late String email;
 
-class inspectProductPage extends StatefulWidget {
-  const inspectProductPage(
+class InspectProductPage extends StatefulWidget {
+  const InspectProductPage(
       {super.key, required this.product_, required this.email_});
   final Product product_;
   final String email_;
 
   @override
-  inspectProductPageState createState() {
+  InspectProductPageState createState() {
     product = product_;
     email = email_;
-    return inspectProductPageState();
+    return InspectProductPageState();
   }
 }
 
-class inspectProductPageState extends State<inspectProductPage> {
-  inspectProductPageState();
+class InspectProductPageState extends State<InspectProductPage> {
+  InspectProductPageState();
   List<Widget> images = [];
   @override
   Widget build(BuildContext context) {

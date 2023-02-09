@@ -186,7 +186,7 @@ class ProductGrid extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => inspectProductPage(
+              builder: (context) => InspectProductPage(
                   product_: product, email_: userInspectorMail)),
         );
       },

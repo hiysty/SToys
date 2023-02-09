@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:swap_toys/pages/styles.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/product.dart';
@@ -13,18 +14,6 @@ class ExchangePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle header = new TextStyle(
-        fontSize: 18,
-        fontFamily: 'Montserrat',
-        fontWeight: FontWeight.w600,
-        color: Color.fromARGB(255, 31, 62, 166));
-
-    TextStyle body = new TextStyle(
-        fontSize: 14,
-        fontFamily: 'Montserrat',
-        fontWeight: FontWeight.w500,
-        color: Colors.blue);
-
     return Scaffold(
         backgroundColor: Color.fromARGB(255, 244, 237, 249),
         appBar: AppBar(title: const Text("Takas Teklifi")),

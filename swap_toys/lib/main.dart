@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:swap_toys/models/product.dart';
 import 'package:swap_toys/models/user.dart';
+import 'package:swap_toys/pages/message_page.dart';
 import 'package:swap_toys/pages/search_page.dart';
 import 'package:swap_toys/pages/home_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
@@ -64,6 +65,7 @@ class _AppPageState extends State<AppPage> {
     HomePage(),
     SearchPage(),
     ProfilePage(FirebaseAuth.instance.currentUser!.email!),
+    MessagePage()
   ];
 
   @override
@@ -73,9 +75,8 @@ class _AppPageState extends State<AppPage> {
       var productsRef = FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .collection('products');
-
-// Get the number of documents in the "products" collection
+          .collection(
+              'products'); // Get the number of documents in the "products" collection
     }
 
     User_ = user(displayName.text, FirebaseAuth.instance.currentUser!.email!);
@@ -86,25 +87,33 @@ class _AppPageState extends State<AppPage> {
     });
 
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 244, 237, 249),
       body: screens[currentPageIndex],
       bottomNavigationBar: GNav(
-        gap: 5,
-        onTabChange: (index) => setState(
-            () => currentPageIndex != index ? currentPageIndex = index : null),
+        selectedIndex: currentPageIndex,
+        color: Color.fromARGB(255, 244, 237, 249),
+        activeColor: Colors.blue,
+        backgroundColor: Colors.white,
+        duration: Duration(milliseconds: 0),
         tabs: const [
           GButton(
             icon: Icons.explore,
-            text: 'Keşfet',
           ),
           GButton(
             icon: Icons.search,
-            text: 'Ara',
           ),
           GButton(
             icon: Icons.account_box,
-            text: 'Profil',
           ),
+          GButton(
+            icon: Icons.inbox,
+          )
         ],
+        onTabChange: (index) {
+          setState(() {
+            currentPageIndex = index;
+          });
+        },
       ),
     );
   }
