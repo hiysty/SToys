@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:swap_toys/models/product.dart';
 
 class user {
@@ -12,6 +13,15 @@ class user {
   user(String displayName, String email) {
     this.displayName = displayName;
     this.email = email;
+  }
+
+  void fromDB(String email) async {
+    DocumentSnapshot a =
+        await FirebaseFirestore.instance.collection("users").doc(email).get();
+
+    this.displayName = a["displayName"];
+    this.email = email;
+    print(a["displayName"]);
   }
 
   Future saveUser() async {
@@ -31,7 +41,7 @@ class user {
     var product = await userSnapShot.reference.collection("products").get();
 
     myProducts_ = product.docs.map((e) => Product.fromJson(e.data())).toList();
-
+    userProducts = myProducts_;
     return myProducts_;
   }
 

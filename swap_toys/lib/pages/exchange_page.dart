@@ -1,22 +1,37 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:swap_toys/main.dart';
+import 'package:swap_toys/models/user.dart';
+import 'package:swap_toys/pages/createProduct_page.dart';
+import 'package:swap_toys/pages/inspectProduct_page.dart';
+import 'package:swap_toys/pages/select_given_product.dart';
 import 'package:swap_toys/pages/styles.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/product.dart';
 
-class ExchangePage extends StatelessWidget {
-  late Product givenProduct;
-  late Product recievedProduct;
+late Product receivedProduct;
+late Product given_product;
 
-  ExchangePage(Product product) {
-    recievedProduct = product;
+late bool Isselected = false;
+
+class ExchangePage extends StatefulWidget {
+  final Product received_product;
+
+  const ExchangePage({required this.received_product});
+  @override
+  State<ExchangePage> createState() {
+    receivedProduct = received_product;
+    return _ExchangePageState();
   }
+}
 
+class _ExchangePageState extends State<ExchangePage> {
   @override
   Widget build(BuildContext context) {
+    getProductOwner();
     return Scaffold(
         backgroundColor: Color.fromARGB(255, 244, 237, 249),
-        appBar: AppBar(title: const Text("Takas Teklifi")),
         body: Padding(
             padding: EdgeInsets.only(top: 20),
             child: Column(children: [
@@ -26,20 +41,32 @@ class ExchangePage extends StatelessWidget {
                 children: <Widget>[
                   Column(
                     children: [
-                      Text("username",
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontFamily: 'Montserrat',
-                              fontWeight: FontWeight.w500,
-                              color: Colors.blue)),
+                      FutureBuilder(
+                        future: getProductOwner(),
+                        builder: (context, AsyncSnapshot<String> snapshot) {
+                          late String data;
+                          if (snapshot.data == null)
+                            data = " ";
+                          else
+                            data = snapshot.data!;
+
+                          return Text(data,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: 'Montserrat',
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.blue));
+                        },
+                      ),
                       ClipRRect(
                           borderRadius: BorderRadius.all(Radius.zero),
                           child: Image(
-                              image: NetworkImage(
-                                  "https://images.unsplash.com/photo-1481349518771-20055b2a7b24?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8cmFuZG9tfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover)),
+                            image:
+                                NetworkImage(receivedProduct.imgLinksURLs[0]),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          )),
                       Container(
                           width: 100,
                           child: Text("product name",
@@ -55,20 +82,45 @@ class ExchangePage extends StatelessWidget {
                           color: Colors.blue)),
                   Column(
                     children: [
-                      Text("username",
+                      Text(User_.displayName,
                           style: TextStyle(
                               fontSize: 12,
                               fontFamily: 'Montserrat',
                               fontWeight: FontWeight.w500,
                               color: Colors.blue)),
-                      ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.zero),
-                          child: Image(
-                              image: NetworkImage(
-                                  "https://images.unsplash.com/photo-1481349518771-20055b2a7b24?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8cmFuZG9tfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover)),
+                      GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            SelectGivenProductPage()))
+                                .then((value) {
+                              setState(() {
+                                if (value != null) {
+                                  Isselected = true;
+                                  given_product = value;
+                                }
+                              });
+                            });
+                          },
+                          child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.zero),
+                              child: Isselected
+                                  ? Image(
+                                      image: NetworkImage(
+                                          given_product.imgLinksURLs[0]),
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover)
+                                  : Container(
+                                      width: 100,
+                                      height: 100,
+                                      child: Text(
+                                        "Click to select product to exchange",
+                                        textAlign: TextAlign.justify,
+                                      ),
+                                    ))),
                       Container(
                           width: 100,
                           child: Text("product name",
@@ -101,8 +153,9 @@ class ExchangePage extends StatelessWidget {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("Merhaba", style: body),
-                                        Text("Merhaba", style: body)
+                                        Text(receivedProduct.category,
+                                            style: body),
+                                        Text("-", style: body)
                                       ])),
                               Text(
                                 "Kullanılmışlık Durumu",
@@ -114,8 +167,14 @@ class ExchangePage extends StatelessWidget {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("Merhaba", style: body),
-                                        Text("Merhaba", style: body)
+                                        Text(statusList[receivedProduct.status],
+                                            style: body),
+                                        Text(
+                                            Isselected
+                                                ? given_product.status
+                                                    .toString()
+                                                : "-",
+                                            style: body)
                                       ])),
                               Text(
                                 "Kaçıncı Sahibi",
@@ -127,8 +186,11 @@ class ExchangePage extends StatelessWidget {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("Merhaba", style: body),
-                                        Text("Merhaba", style: body)
+                                        Text(
+                                            receivedProduct.exchangedTimes
+                                                .toString(),
+                                            style: body),
+                                        Text("-", style: body)
                                       ]))
                             ],
                           )))),
@@ -145,3 +207,20 @@ class ExchangePage extends StatelessWidget {
             ])));
   }
 }
+
+Future<String> getProductOwner() async {
+  String ownerName = "";
+  DocumentSnapshot ref = await FirebaseFirestore.instance
+      .collection("users")
+      .doc(receivedProduct.email)
+      .get();
+  var doc = ref.data();
+  String extractMap(var doc) {
+    return doc["displayName"];
+  }
+
+  print(User_.displayName);
+  return extractMap(doc);
+}
+
+void StartExchangeRequest() {}

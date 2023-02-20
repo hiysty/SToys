@@ -37,16 +37,6 @@ class InspectProductPageState extends State<InspectProductPage> {
       });
     });
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: const Icon(Icons.arrow_back_ios),
-        ),
-        title: const Text("Ürünü İncele"),
-        centerTitle: true,
-      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -114,8 +104,13 @@ Widget Update_offer_check(BuildContext context) {
   } else {
     BTN = ElevatedButton(
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ExchangePage(product)));
+          Isselected = false;
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ExchangePage(
+                        received_product: product,
+                      )));
         },
         child: Text(
           "Takas teklif et!",

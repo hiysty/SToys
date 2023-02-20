@@ -77,7 +77,6 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!mounted) return;
 
-            print("${image.path} cameraManager");
             Navigator.pop(context, image.path);
             // If the picture was taken, display it on a new screen.
 

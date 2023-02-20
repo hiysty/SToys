@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -16,6 +15,8 @@ class Product {
   late String email;
   late String firsImg;
   late String id;
+  late int exchangedTimes;
+  late String category;
   List<dynamic> tags = [];
 
   late List<String> imgLinksURLs;
@@ -66,6 +67,9 @@ class Product {
     this.description = doc["desc"];
     this.email = doc["email"];
     if (doc["tags"] != null) this.tags = doc["tags"];
+    if (doc["category"] != null) this.category = doc["category"];
+    if (doc["exchangedTimes"] != null)
+      this.exchangedTimes = doc["exchangedTimes"];
   }
   Map<String, dynamic> toJson() {
     final json = {
@@ -74,6 +78,8 @@ class Product {
       "desc": description,
       "imgList": imgsLinksMap,
       "email": email,
+      "exchangedTimes": 0,
+      "category": "car",
     };
 
     return json;

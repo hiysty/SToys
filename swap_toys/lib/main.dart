@@ -70,20 +70,24 @@ class _AppPageState extends State<AppPage> {
 
   @override
   Widget build(BuildContext context) {
-    void getProductCount() {
+    Future<void> setuserProduct() async {
       var userId = FirebaseAuth.instance.currentUser!.email;
-      var productsRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection(
-              'products'); // Get the number of documents in the "products" collection
+      var usrRef = await FirebaseFirestore.instance.collection('users').get();
+      for (var usr in usrRef.docs)
+        if (usr["email"] == userId) {
+          User_.displayName = usr["displayName"];
+          User_.MyProducts(usr);
+        }
     }
 
     User_ = user(displayName.text, FirebaseAuth.instance.currentUser!.email!);
-
     var ref = FirebaseFirestore.instance.collection("users").doc(User_.email);
     ref.snapshots().listen((snapshot) {
-      if (!snapshot.exists) User_.saveUser();
+      if (!snapshot.exists)
+        User_.saveUser();
+      else {
+        setuserProduct();
+      }
     });
 
     return Scaffold(

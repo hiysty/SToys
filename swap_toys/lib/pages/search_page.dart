@@ -100,7 +100,6 @@ class CustomSearchDelegate extends SearchDelegate {
 
   List<Product> getMatchedProducts(String query) {
     List<Product> matcheds = [];
-    print("hm");
     for (var toy in allProducts) {
       if (toy.isAboutMe(query)) matcheds.add(toy);
     }
@@ -110,7 +109,6 @@ class CustomSearchDelegate extends SearchDelegate {
   List<user> getMatchedUsers(String query) {
     List<user> matcheds = [];
     for (var user in allUsers) {
-      print(user.displayName);
       if (user.isAboutMe(query)) matcheds.add(user);
     }
     return matcheds;
@@ -176,31 +174,31 @@ class CustomSearchDelegate extends SearchDelegate {
 
   Widget buildSuggestionsSuccess(
       List<Product> productSuggestions, List<user> userSuggestions) {
-    return MaterialApp(
-      home: DefaultTabController(
-        child: Scaffold(
-          appBar: AppBar(
-            bottom: PreferredSize(
-              preferredSize: Size.fromHeight(0),
-              child: TabBar(tabs: [
-                Tab(
-                    icon: Icon(
-                  Icons.toys_rounded,
-                )),
-                Tab(
-                    icon: Icon(
-                  Icons.supervisor_account_rounded,
-                )),
-              ]),
-            ),
+    return DefaultTabController(
+      child: Scaffold(
+        appBar: AppBar(
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(0),
+            child: TabBar(tabs: [
+              Tab(
+                  icon: Icon(
+                Icons.toys_rounded,
+                color: Colors.blueAccent,
+              )),
+              Tab(
+                  icon: Icon(
+                Icons.supervisor_account_rounded,
+                color: Colors.blueAccent,
+              )),
+            ]),
           ),
-          body: TabBarView(children: [
-            toySuggestionsWidget(productSuggestions),
-            userSuggestionWidget(userSuggestions)
-          ]),
         ),
-        length: 2,
+        body: TabBarView(children: [
+          toySuggestionsWidget(productSuggestions),
+          userSuggestionWidget(userSuggestions)
+        ]),
       ),
+      length: 2,
     );
   }
 }
@@ -212,8 +210,8 @@ Future<List<Product>> getAll() async {
       await FirebaseFirestore.instance.collection("users").get();
   List<Product> productPool = [];
   for (var user_ in users.docs) {
+    if (user_["email"] == User_.email) break;
     user usr = user(user_["displayName"], user_["email"]);
-    print(usr.displayName);
     allUsers.add(usr);
     productPool.addAll(await usr.MyProducts(user_));
   }
