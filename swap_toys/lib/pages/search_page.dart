@@ -9,6 +9,7 @@ import 'package:swap_toys/models/product.dart';
 import 'dart:async';
 import '../models/user.dart';
 import 'inspectProduct_page.dart';
+import 'styles.dart';
 
 late Timer timer;
 List<Product> allProducts = [];
@@ -16,8 +17,6 @@ List<user> allUsers = [];
 
 int productCountToShow = 5;
 int userCountToShow = 5;
-
-bool _hideAppBar = false;
 
 class SearchPage extends StatefulWidget {
   @override
@@ -31,26 +30,36 @@ class _SearchPageState extends State<SearchPage> {
       allProducts = await getAll();
     });
 
-    timer = Timer.periodic(Duration(seconds: 60), (Timer t) async {
+    timer = Timer.periodic(const Duration(seconds: 60), (Timer t) async {
       allProducts = await getAll();
       if (currentPageIndex != 1) t.cancel();
     });
 
     return Scaffold(
-      appBar: _hideAppBar
-          ? null
-          : AppBar(
-              title: const Text("Ara"),
-              actions: [
-                IconButton(
-                    onPressed: () {
-                      FocusScope.of(context).unfocus();
-                      final results = showSearch(
-                          context: context, delegate: CustomSearchDelegate());
-                    },
-                    icon: const Icon(Icons.search)),
-              ],
-            ),
+      appBar: AppBar(
+        title: const Text(
+          "Ara",
+          style: appBar,
+        ),
+        actions: [
+          IconButton(
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                final results = showSearch(
+                    context: context, delegate: CustomSearchDelegate());
+              },
+              icon: const Icon(Icons.search)),
+        ],
+      ),
+      body: const Center(
+          child: SizedBox(
+        width: 250,
+        child: Text(
+          "Arama yapmak için arama butonuna tıklayınız.",
+          style: header,
+          textAlign: TextAlign.center,
+        ),
+      )),
     );
   }
 }
@@ -132,7 +141,6 @@ class CustomSearchDelegate extends SearchDelegate {
             return ListTile(
               title: Text(suggestion.title),
               onTap: () {
-                _hideAppBar = true;
                 _SearchPageState();
                 Navigator.push(
                   context,
@@ -166,6 +174,10 @@ class CustomSearchDelegate extends SearchDelegate {
               title: Text(suggestion.displayName),
               onTap: () {
                 query = suggestion.displayName;
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ProfilePage(suggestion.email)));
               },
             );
           }

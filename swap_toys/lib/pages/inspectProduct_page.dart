@@ -6,6 +6,7 @@ import 'package:swap_toys/models/user.dart';
 import 'package:swap_toys/pages/createProduct_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/pages/updateProduct_page.dart';
+import 'styles.dart';
 
 import 'exchange_page.dart';
 
@@ -37,6 +38,11 @@ class InspectProductPageState extends State<InspectProductPage> {
       });
     });
     return Scaffold(
+      appBar: AppBar(
+          title: const Text(
+        'Ürün İncele',
+        style: appBar,
+      )),
       body: SingleChildScrollView(
         child: Column(
           children: [

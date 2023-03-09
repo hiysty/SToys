@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -5,12 +7,40 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
+import 'package:swap_toys/pages/editProfile_page.dart';
 import 'package:swap_toys/pages/inspectProduct_page.dart';
-
+import 'styles.dart';
 import 'createProduct_page.dart';
 
 //profil
 late String userInspectorMail;
+
+Future<Map<String, String>> fetchData(String mail) async {
+  final storage = FirebaseStorage.instance;
+  final docRef = FirebaseFirestore.instance.collection('users').doc(mail);
+
+  late Map<String, dynamic> data;
+  await docRef.get().then((DocumentSnapshot doc) {
+    data = doc.data() as Map<String, dynamic>;
+  });
+  final displayName = data['displayName'];
+
+  try {
+    return {
+      "displayName": displayName,
+      "profilePicture":
+          await storage.ref().child('profilePictures/$mail').getDownloadURL()
+    };
+  } catch (e) {
+    return {
+      "displayName": displayName,
+      "profilePicture": await storage
+          .ref()
+          .child('profilePictures/default.png')
+          .getDownloadURL()
+    };
+  }
+}
 
 class ProfilePage extends StatefulWidget {
   ProfilePage(String mail) {
@@ -33,16 +63,58 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  FutureOr onGoBack(dynamic value) {
+    fetchData(User_.email);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: isUserProfile
-            ? null
+            ? AppBar(
+                title: Text('Profil',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 23)),
+                actions: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.notifications),
+                    enableFeedback: false,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                  ),
+                  IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => EditProfile()))
+                            .then(onGoBack);
+                      },
+                      icon: const Icon(Icons.settings)),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.logout),
+                    enableFeedback: false,
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                  )
+                ],
+              )
             : AppBar(
                 leading: IconButton(
-                    icon: Icon(Icons.arrow_back_ios),
+                    icon: const Icon(Icons.arrow_back_ios),
                     onPressed: () => Navigator.pop(context)),
-                title: Text('Profil'),
+                title: const Text('Profil', style: appBar),
+                actions: [
+                  IconButton(
+                      enableFeedback: false,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      onPressed: () {},
+                      icon: const Icon(Icons.mail_outline))
+                ],
               ),
         body: AccountPage(userMail),
         floatingActionButton: Visibility(
@@ -87,75 +159,64 @@ class _AccountPageState extends State<AccountPage> {
       .doc(User_.email)
       .collection("products");
 
-  Future<String> readDisplayName(String mail) async {
-    final docRef = FirebaseFirestore.instance.collection('users').doc(mail);
-
-    late var data;
-    await docRef.get().then((DocumentSnapshot doc) {
-      data = doc.data() as Map<String, dynamic>;
-    });
-    return data['displayName'];
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Padding(
-          padding: const EdgeInsets.fromLTRB(30, 30, 30, 20),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                  radius: 60,
-                  backgroundImage: NetworkImage(
-                      "https://pbs.twimg.com/profile_images/1376481584422002689/woHOrg1__400x400.jpg")),
-              const SizedBox(width: 18),
-              Expanded(
-                child: FutureBuilder<String>(
-                  future: readDisplayName(userMail),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return Text(
-                        snapshot.data!,
+    return FutureBuilder<Map<String, String>>(
+        future: fetchData(userMail),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Column(children: [
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(30, 10, 30, 20),
+                  child: Row(children: [
+                    CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 60,
+                        foregroundImage:
+                            NetworkImage(snapshot.data!['profilePicture']!)),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Text(
+                        snapshot.data!['displayName']!,
                         style: TextStyle(fontSize: 18),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    return CircularProgressIndicator();
-                  },
-                ),
+                      ),
+                    ),
+                  ])),
+              Expanded(
+                child: ScrollConfiguration(
+                    behavior: MyBehavior(),
+                    child: StreamBuilder<List<Product>>(
+                        stream: readProducts(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Text(
+                                'Bir şeyler yanlış gitti! ${snapshot.error}');
+                          } else if (snapshot.hasData) {
+                            User_.userProducts = snapshot.data!;
+                            return GridView.count(
+                              padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                              crossAxisSpacing: 5,
+                              mainAxisSpacing: 5,
+                              shrinkWrap: true,
+                              crossAxisCount: 3,
+                              children:
+                                  List.generate(snapshot.data!.length, (index) {
+                                return ProductGrid(
+                                    snapshot.data![index], index.toString());
+                              }),
+                            );
+                          } else {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                        })),
               )
-            ],
-          )),
-      Expanded(
-        child: ScrollConfiguration(
-            behavior: MyBehavior(),
-            child: StreamBuilder<List<Product>>(
-                stream: readProducts(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Bir şeyler yanlış gitti! ${snapshot.error}');
-                  } else if (snapshot.hasData) {
-                    User_.userProducts = snapshot.data!;
-                    return GridView.count(
-                      padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                      crossAxisSpacing: 5,
-                      mainAxisSpacing: 5,
-                      shrinkWrap: true,
-                      crossAxisCount: 3,
-                      children: List.generate(snapshot.data!.length, (index) {
-                        return ProductGrid(
-                            snapshot.data![index], index.toString());
-                      }),
-                    );
-                  } else {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                })),
-      )
-    ]);
+            ]);
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        });
   }
 
   Stream<List<Product>> readProducts() => FirebaseFirestore.instance
@@ -177,6 +238,7 @@ class ProductGrid extends StatelessWidget {
     return InkWell(
       child: Container(
         decoration: new BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
             image: new DecorationImage(
                 image: NetworkImage(product.imgLinksURLs[0]),
                 fit: BoxFit.fitWidth,

@@ -176,17 +176,16 @@ class _CreateProductState extends State<CreateProduct> {
                   )),
         );
         setState(() {
-          localImgPaths.add(path);
+          if (path != null) localImgPaths.add(path);
         });
       },
       icon: const Icon(Icons.add_a_photo_outlined),
       label: const Text("resim ekle"),
     );
-    throw const Text("upload error!");
   }
 
   Future<Map> uploadImgs(List<String> paths) async {
-    final Links = {"0": "1"};
+    final links = {"0": "1"};
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -206,12 +205,12 @@ class _CreateProductState extends State<CreateProduct> {
         url = await ref.getDownloadURL();
       });
 
-      Links["$i"] = url;
+      links["$i"] = url;
     }
     Navigator.pop(context);
     Navigator.pop(context);
 
-    return Links;
+    return links;
   }
 
   Future updateSearchTerms() async {

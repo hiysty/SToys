@@ -13,7 +13,7 @@ class Product {
   late Map imgsLinksMap;
   late String description;
   late String email;
-  late String firsImg;
+  late String firstImg;
   late String id;
   late int exchangedTimes;
   late String category;
@@ -21,15 +21,10 @@ class Product {
 
   late List<String> imgLinksURLs;
 
-  Product(String title, int status, Map imgLinksMap, String description,
-      String email,
+  Product(
+      this.title, this.status, this.imgsLinksMap, this.description, this.email,
       {String? id}) {
-    this.title = title;
-    this.status = status;
-    this.imgsLinksMap = imgLinksMap;
-    this.description = description;
-    this.email = email;
-    this.firsImg = imgLinksMap[0];
+    firstImg = imgsLinksMap[0];
   }
 
   Future createProduct() async {

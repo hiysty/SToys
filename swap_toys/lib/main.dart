@@ -56,11 +56,6 @@ class AppPage extends StatefulWidget {
 }
 
 class _AppPageState extends State<AppPage> {
-  @override
-  initState() {
-    super.initState();
-  }
-
   final screens = [
     HomePage(),
     SearchPage(),
@@ -110,7 +105,7 @@ class _AppPageState extends State<AppPage> {
             icon: Icons.account_box,
           ),
           GButton(
-            icon: Icons.inbox,
+            icon: Icons.mail_outline,
           )
         ],
         onTabChange: (index) {
