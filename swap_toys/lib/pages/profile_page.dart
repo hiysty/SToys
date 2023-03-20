@@ -7,8 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
+import 'package:swap_toys/models/user.dart';
+import 'package:swap_toys/pages/chat_page.dart';
 import 'package:swap_toys/pages/editProfile_page.dart';
+import 'package:swap_toys/pages/error_page.dart';
 import 'package:swap_toys/pages/inspectProduct_page.dart';
+import 'package:swap_toys/pages/notification_page.dart';
 import 'styles.dart';
 import 'createProduct_page.dart';
 
@@ -68,40 +72,80 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {});
   }
 
+  startChat() async {
+    final firestore = FirebaseFirestore.instance;
+
+    bool isBlocked;
+
+    try {
+      isBlocked = await firestore
+          .collection('users')
+          .doc(User_.email)
+          .collection('chats')
+          .doc(userMail)
+          .get()
+          .then((value) => value['isBlocked']);
+    } catch (e) {
+      isBlocked = false;
+    }
+
+    await firestore
+        .collection('users')
+        .doc(User_.email)
+        .collection('chats')
+        .doc(userMail)
+        .set({"isBlocked": isBlocked}, SetOptions(merge: true)).then((value) =>
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ChatPage(email: userMail))));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: isUserProfile
             ? AppBar(
-                title: Text('Profil',
+                title: const Text('Profil',
                     style:
                         TextStyle(fontWeight: FontWeight.w700, fontSize: 23)),
                 actions: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.notifications),
-                    enableFeedback: false,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                  ),
-                  IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => EditProfile()))
-                            .then(onGoBack);
-                      },
-                      icon: const Icon(Icons.settings)),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.logout),
-                    enableFeedback: false,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                  )
-                ],
-              )
+                    PopupMenuButton(
+                        enableFeedback: false,
+                        splashRadius: 0.0001,
+                        itemBuilder: (context) => <PopupMenuEntry>[
+                              const PopupMenuItem(
+                                  value: 1, child: Text('Takas Tekliflerim')),
+                              const PopupMenuItem(
+                                  value: 2, child: Text('Ayarlar')),
+                              const PopupMenuItem(
+                                  value: 3, child: Text('Çıkış Yap'))
+                            ],
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (value) {
+                          switch (value) {
+                            case 1:
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const NotificationPage()));
+                              break;
+
+                            case 2:
+                              Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => EditProfile()))
+                                  .then(onGoBack);
+                              break;
+
+                            case 3:
+                              FirebaseAuth.instance.signOut();
+                              break;
+                          }
+                        })
+                  ])
             : AppBar(
                 leading: IconButton(
                     icon: const Icon(Icons.arrow_back_ios),
@@ -112,16 +156,17 @@ class _ProfilePageState extends State<ProfilePage> {
                       enableFeedback: false,
                       splashColor: Colors.transparent,
                       highlightColor: Colors.transparent,
-                      onPressed: () {},
+                      onPressed: startChat,
                       icon: const Icon(Icons.mail_outline))
                 ],
               ),
         body: AccountPage(userMail),
         floatingActionButton: Visibility(
             visible: isUserProfile,
-            child: FloatingActionButton(
+            child: FloatingActionButton.extended(
                 backgroundColor: Colors.blue,
-                child: const Icon(Icons.add),
+                icon: const Icon(Icons.add),
+                label: const Text("Ürün Ekle"),
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
                     return CreateProduct();
@@ -189,8 +234,8 @@ class _AccountPageState extends State<AccountPage> {
                         stream: readProducts(),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
-                            return Text(
-                                'Bir şeyler yanlış gitti! ${snapshot.error}');
+                            return ErrorPage(
+                                errorCode: snapshot.error.toString());
                           } else if (snapshot.hasData) {
                             User_.userProducts = snapshot.data!;
                             return GridView.count(
@@ -202,44 +247,46 @@ class _AccountPageState extends State<AccountPage> {
                               children:
                                   List.generate(snapshot.data!.length, (index) {
                                 return ProductGrid(
-                                    snapshot.data![index], index.toString());
+                                    snapshot.data![index], index);
                               }),
                             );
                           } else {
                             return const Center(
-                              child: CircularProgressIndicator(),
-                            );
+                                child: CircularProgressIndicator());
                           }
                         })),
-              )
+              ),
             ]);
+          } else if (snapshot.hasError) {
+            return ErrorPage(errorCode: snapshot.error.toString());
           } else {
             return const Center(child: CircularProgressIndicator());
           }
         });
   }
 
-  Stream<List<Product>> readProducts() => FirebaseFirestore.instance
-      .collection("users")
-      .doc(userMail)
-      .collection("products")
-      .snapshots()
-      .map((snapshot) =>
-          snapshot.docs.map((doc) => Product.fromJson(doc.data())).toList());
+  Stream<List<Product>> readProducts() {
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(userMail)
+        .collection("products")
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Product.fromJson(doc)).toList());
+  }
 }
 
 class ProductGrid extends StatelessWidget {
   Product product;
-  String id;
-  ProductGrid(this.product, this.id, {super.key});
+  int index;
+  ProductGrid(this.product, this.index, {super.key});
   @override
   Widget build(BuildContext context) {
-    product.id = id;
     return InkWell(
       child: Container(
-        decoration: new BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            image: new DecorationImage(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            image: DecorationImage(
                 image: NetworkImage(product.imgLinksURLs[0]),
                 fit: BoxFit.fitWidth,
                 alignment: FractionalOffset.topCenter)),
@@ -248,8 +295,7 @@ class ProductGrid extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => InspectProductPage(
-                  product_: product, email_: userInspectorMail)),
+              builder: (context) => InspectProductPage(product_: product)),
         );
       },
     );

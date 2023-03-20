@@ -40,7 +40,7 @@ class user {
     List<Product> myProducts_ = [];
     var product = await userSnapShot.reference.collection("products").get();
 
-    myProducts_ = product.docs.map((e) => Product.fromJson(e.data())).toList();
+    myProducts_ = product.docs.map((e) => Product.fromJson(e)).toList();
     userProducts = myProducts_;
     return myProducts_;
   }

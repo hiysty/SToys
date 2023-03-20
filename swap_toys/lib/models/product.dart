@@ -17,29 +17,24 @@ class Product {
   late String id;
   late int exchangedTimes;
   late String category;
+  DateTime dateTime = DateTime.now();
   List<dynamic> tags = [];
 
   late List<String> imgLinksURLs;
 
-  Product(
-      this.title, this.status, this.imgsLinksMap, this.description, this.email,
-      {String? id}) {
-    firstImg = imgsLinksMap[0];
+  Product(this.title, this.status, this.imgsLinksMap, this.description,
+      this.email) {
+    firstImg = imgsLinksMap["0"];
   }
 
   Future createProduct() async {
-    var count = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(FirebaseAuth.instance.currentUser!.email)
-        .collection("products")
-        .get()
-        .then((value) => value.size);
-
     final docProduct = FirebaseFirestore.instance
         .collection("users")
         .doc(FirebaseAuth.instance.currentUser!.email)
         .collection("products")
-        .doc((count + 1).toString());
+        .doc();
+
+    id = docProduct.id;
 
     await docProduct.set(toJson());
   }
@@ -49,35 +44,81 @@ class Product {
         .collection("users")
         .doc(email)
         .collection("products")
-        .doc(id);
+        .doc(id.toString());
 
     refProduct.update(toJson());
   }
 
-  Product.fromJson(var doc) {
-    this.title = doc["title"];
-    this.status = doc["status"];
-    if (doc["imgList"] != null)
-      this.imgLinksURLs = mapToListForImgLinks(doc["imgList"]);
-    this.description = doc["desc"];
-    this.email = doc["email"];
-    if (doc["tags"] != null) this.tags = doc["tags"];
-    if (doc["category"] != null) this.category = doc["category"];
-    if (doc["exchangedTimes"] != null)
-      this.exchangedTimes = doc["exchangedTimes"];
+  bool checkIfNull() {
+    return [id].contains(null);
   }
+
+  Product.fromJson(QueryDocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    id = doc.id;
+    title = data["title"];
+    status = data["status"];
+    if (data["imgList"] != null)
+      imgLinksURLs = (data["imgList"] as List).map((e) => e as String).toList();
+    description = data["desc"];
+    email = data["email"];
+    if (data["tags"] != null) tags = data["tags"];
+    if (data["category"] != null) category = data["category"];
+    if (data["exchangedTimes"] != null) exchangedTimes = data["exchangedTimes"];
+  }
+
+  Product.fromJsonWithoutId(dynamic data) {
+    title = data["title"];
+    status = data["status"];
+    if (data["imgList"] != null)
+      imgLinksURLs = (data["imgList"] as List).map((e) => e as String).toList();
+    description = data["desc"];
+    email = data["email"];
+    if (data["tags"] != null) tags = data["tags"];
+    if (data["category"] != null) category = data["category"];
+    if (data["exchangedTimes"] != null) exchangedTimes = data["exchangedTimes"];
+    id = data["id"];
+  }
+
   Map<String, dynamic> toJson() {
-    final json = {
+    final Map<String, dynamic> json = {
       "title": title,
       "status": status,
       "desc": description,
-      "imgList": imgsLinksMap,
+      "imgList": mapToListForImgLinks(imgsLinksMap),
       "email": email,
       "exchangedTimes": 0,
       "category": "car",
+      "date_time": dateTime
     };
 
     return json;
+  }
+
+  Map<String, dynamic> toJSONNotification() {
+    return {
+      "title": title,
+      "status": status,
+      "desc": description,
+      "imgList": imgLinksURLs,
+      "email": email,
+      "exchangedTimes": exchangedTimes,
+      "category": "car",
+      "id": id
+    };
+  }
+
+  Map<String, dynamic> toJSONExchangeComplete(String newMail) {
+    return {
+      "title": title,
+      "status": status,
+      "desc": description,
+      "imgList": imgLinksURLs,
+      "email": newMail,
+      "exchangedTimes": exchangedTimes + 1,
+      "category": "car",
+      "id": id
+    };
   }
 
   List<String> mapToListForImgLinks(var doc) {

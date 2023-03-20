@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
-import 'package:swap_toys/pages/inspectProduct_page.dart';
-import 'package:swap_toys/pages/exchange_page.dart';
+import 'package:swap_toys/pages/error_page.dart';
 import 'package:swap_toys/pages/styles.dart';
 
 Product? selectedProduct;
@@ -12,61 +13,121 @@ class SelectGivenProductPage extends StatefulWidget {
   const SelectGivenProductPage({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _SelectGivenProductPageState();
-  }
+  State<StatefulWidget> createState() => _SelectGivenProductPageState();
 }
 
 class _SelectGivenProductPageState extends State<SelectGivenProductPage> {
+  final List<String> statusList = <String>[
+    'Oldukça Eski',
+    'Eski',
+    'Ortalama',
+    'Yeni',
+    'Kutusu Açılmamış'
+  ];
+
+  Future<List<Product>> getProducts() async {
+    List<Product> data = [];
+
+    for (var doc in await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.email)
+        .collection('products')
+        .get()
+        .then((value) => value.docs)) {
+      data.add(Product.fromJson(doc));
+    }
+
+    return data;
+  }
+
   @override
   Widget build(BuildContext context) {
-    mostEquivalentProduct = calcMostEquivalentProductOfMines(receivedProduct);
+    mostEquivalentProduct = calcMostEquivalentProductOfMines();
     return Scaffold(
+      appBar: AppBar(title: const Text("Ürün Seç", style: appBar)),
       body: Column(
         children: [
-          Text(
-            "Seçilen Ürün",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20),
-          ),
-          Row(
-            children: [
-              Container(
-                  alignment: Alignment.centerLeft,
-                  width: MediaQuery.of(context).size.width / 2,
-                  height: MediaQuery.of(context).size.width,
-                  child: (selectedProduct != null)
-                      ? Image(
-                          image: NetworkImage(selectedProduct!.imgLinksURLs[0]))
-                      : Align(
-                          child: Text("Takas edilecek ürünü seçiniz"),
-                          alignment: Alignment.topCenter,
-                        )),
-              Text(
-                "Ürün bilgileri ve değer puanı",
-                textAlign: TextAlign.left,
-              )
-            ],
-          ),
-          GridView.count(
-            padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 5,
-            shrinkWrap: true,
-            crossAxisCount: 3,
-            children: List.generate(User_.userProducts.length, (index) {
-              return ProductGrid(
-                  User_.userProducts[index], index.toString(), this);
-            }),
-          ),
+          Container(
+              color: Colors.white,
+              child: Padding(
+                  padding: const EdgeInsets.fromLTRB(15, 7, 15, 7),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          selectedProduct != null
+                              ? selectedProduct!.title
+                              : "—",
+                          style: header,
+                        ),
+                        Text(
+                          User_.displayName,
+                          style: body,
+                        )
+                      ]))),
+          selectedProduct != null
+              ? Image(image: NetworkImage(selectedProduct!.imgLinksURLs[0]))
+              : const SizedBox(
+                  height: 300,
+                  child: Center(
+                    child: Text("Takas edilecek ürünü seçiniz"),
+                  )),
           SizedBox(
+              width: double.infinity,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            selectedProduct != null
+                                ? "Durum: ${statusList[selectedProduct!.status]}"
+                                : "Durum:  —",
+                            style: header),
+                        Text(
+                          selectedProduct != null
+                              ? "Kategori: ${selectedProduct!.category}"
+                              : "Kategori:  —",
+                          style: header,
+                        ),
+                        Text(
+                          selectedProduct != null
+                              ? "Sahibi: ${selectedProduct!.exchangedTimes}"
+                              : "Sahibi:  —",
+                          style: header,
+                        ),
+                      ]))),
+          const Text('Ürünleriniz'),
+          const SizedBox(width: 10),
+          FutureBuilder(
+              future: getProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return GridView.count(
+                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                    crossAxisSpacing: 5,
+                    mainAxisSpacing: 5,
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    children: List.generate(
+                        snapshot.data!.length,
+                        (index) => ProductGrid(
+                            snapshot.data![index], index.toString(), this)),
+                  );
+                } else if (snapshot.hasError) {
+                  return ErrorPage(errorCode: snapshot.error.toString());
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              }),
+          const SizedBox(
             height: 20,
           ),
           ElevatedButton(
               onPressed: () {
                 Navigator.pop(context, selectedProduct);
               },
-              child: Text(
+              child: const Text(
                 "SEÇ",
                 style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
               ))
@@ -75,12 +136,11 @@ class _SelectGivenProductPageState extends State<SelectGivenProductPage> {
     );
   }
 
-  Product calcMostEquivalentProductOfMines(Product received) {
+  Product calcMostEquivalentProductOfMines() {
     return User_.userProducts[0];
   }
 
-  void setSelectedProduct(Product selected) {
-    print("piç");
+  void setSelectedProduct(Product? selected) {
     setState(() {
       selectedProduct = selected;
     });
@@ -91,10 +151,10 @@ class ProductGrid extends StatelessWidget {
   Product product;
   String id;
   _SelectGivenProductPageState state;
+
   ProductGrid(this.product, this.id, this.state, {super.key});
   @override
   Widget build(BuildContext context) {
-    product.id = id;
     return InkWell(
       child: product == mostEquivalentProduct
           ? Stack(
@@ -130,8 +190,11 @@ class ProductGrid extends StatelessWidget {
                       alignment: FractionalOffset.topCenter)),
             ),
       onTap: () {
-        if (selectedProduct == product) return;
-        state.setSelectedProduct(product);
+        if (selectedProduct != product) {
+          state.setSelectedProduct(product);
+        } else {
+          state.setSelectedProduct(null);
+        }
       },
     );
   }

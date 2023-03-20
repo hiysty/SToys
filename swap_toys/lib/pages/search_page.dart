@@ -145,8 +145,8 @@ class CustomSearchDelegate extends SearchDelegate {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => InspectProductPage(
-                          product_: suggestion, email_: suggestion.email)),
+                      builder: (context) =>
+                          InspectProductPage(product_: suggestion)),
                 );
                 query = suggestion.title;
               },
@@ -175,9 +175,11 @@ class CustomSearchDelegate extends SearchDelegate {
               onTap: () {
                 query = suggestion.displayName;
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ProfilePage(suggestion.email)));
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                ProfilePage(suggestion.email)))
+                    .then((value) => ProfilePage(User_.email));
               },
             );
           }
@@ -221,8 +223,8 @@ Future<List<Product>> getAll() async {
   QuerySnapshot users =
       await FirebaseFirestore.instance.collection("users").get();
   List<Product> productPool = [];
-  for (var user_ in users.docs) {
-    if (user_["email"] == User_.email) break;
+  for (QueryDocumentSnapshot user_ in users.docs) {
+    if (user_["displayName"] == User_.displayName) break;
     user usr = user(user_["displayName"], user_["email"]);
     allUsers.add(usr);
     productPool.addAll(await usr.MyProducts(user_));

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/user.dart';
+import 'package:swap_toys/pages/error_page.dart';
 import 'styles.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
@@ -128,6 +129,8 @@ class _EditProfileState extends State<EditProfile> {
                                   )
                                 ])
                       ]);
+                    } else if (snapshot.hasError) {
+                      return ErrorPage(errorCode: snapshot.error.toString());
                     } else {
                       return const SizedBox(
                         height: 120,

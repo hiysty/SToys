@@ -15,6 +15,7 @@ import 'package:swap_toys/pages/home_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 
 late user User_;
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -56,7 +57,7 @@ class AppPage extends StatefulWidget {
 }
 
 class _AppPageState extends State<AppPage> {
-  final screens = [
+  List<Widget> screens = [
     HomePage(),
     SearchPage(),
     ProfilePage(FirebaseAuth.instance.currentUser!.email!),
@@ -66,21 +67,23 @@ class _AppPageState extends State<AppPage> {
   @override
   Widget build(BuildContext context) {
     Future<void> setuserProduct() async {
-      var userId = FirebaseAuth.instance.currentUser!.email;
+      String userId = FirebaseAuth.instance.currentUser!.email!;
       var usrRef = await FirebaseFirestore.instance.collection('users').get();
-      for (var usr in usrRef.docs)
+      for (var usr in usrRef.docs) {
         if (usr["email"] == userId) {
           User_.displayName = usr["displayName"];
-          User_.MyProducts(usr);
+          await User_.MyProducts(usr);
         }
+      }
     }
 
     User_ = user(displayName.text, FirebaseAuth.instance.currentUser!.email!);
     var ref = FirebaseFirestore.instance.collection("users").doc(User_.email);
+
     ref.snapshots().listen((snapshot) {
-      if (!snapshot.exists)
+      if (!snapshot.exists) {
         User_.saveUser();
-      else {
+      } else {
         setuserProduct();
       }
     });
@@ -303,52 +306,51 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                 controller: emailController,
                 cursorColor: Colors.white,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: "Email"),
+                decoration: const InputDecoration(labelText: "E-Posta"),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (email) =>
                     email != null && !EmailValidator.validate(email)
-                        ? "Enter a valid email"
+                        ? "Lütfen geçerli bir e-posta adresi giriniz."
                         : null,
               ),
               const SizedBox(height: 4),
               TextFormField(
                 controller: displayName,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: "Kullanıcı adı"),
+                decoration: const InputDecoration(labelText: "Kullanıcı Adı"),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: ((value) => value != null && value.length < 6
-                    ? "Enter min. 2 character"
+                    ? "Lütfen en az 2 karakter giriniz."
                     : null),
               ),
               const SizedBox(height: 4),
               TextFormField(
                 controller: passwordController,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: "Password"),
+                decoration: const InputDecoration(labelText: "Şifre"),
                 obscureText: true,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: ((value) => value != null && value.length < 6
-                    ? "Enter min. 6 character"
+                    ? "Lütfen en az 6 karakter giriniz."
                     : null),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 4),
               TextFormField(
                 controller: confirmPasswordController,
                 textInputAction: TextInputAction.done,
-                decoration:
-                    const InputDecoration(labelText: "Confirm Password"),
+                decoration: const InputDecoration(labelText: "Şifreyi doğrula"),
                 obscureText: true,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: ((value) =>
                     value != null && value != passwordController.text.trim()
-                        ? "Confirm password does not match"
+                        ? "Şifreleriniz uyuşmuyor!"
                         : null),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: const Icon(Icons.lock_open, size: 32),
                 label: const Text(
-                  "Sign Up",
+                  "Kayıt Ol",
                   style: TextStyle(fontSize: 24),
                 ),
                 onPressed: signUp,
@@ -358,12 +360,12 @@ class _SignUpWidgetState extends State<SignUpWidget> {
                   text: TextSpan(
                       style: const TextStyle(
                           color: Color.fromARGB(255, 0, 0, 0), fontSize: 16),
-                      text: "Already have an account ?   ",
+                      text: "Zaten bir hesabınız var mı? ",
                       children: [
                     TextSpan(
                         recognizer: TapGestureRecognizer()
                           ..onTap = widget.onClickedSignIn,
-                        text: "Sign In",
+                        text: "Giriş Yap",
                         style: TextStyle(
                             decoration: TextDecoration.underline,
                             color: Theme.of(context).colorScheme.secondary))
@@ -445,20 +447,20 @@ class _LoginWidgetState extends State<LoginWidget> {
               controller: emailController,
               cursorColor: Colors.white,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(labelText: "E-Posta"),
             ),
             const SizedBox(height: 4),
             TextField(
               controller: passwordController,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(labelText: "Password"),
+              decoration: const InputDecoration(labelText: "Şifre"),
               obscureText: true,
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               icon: const Icon(Icons.lock_open, size: 32),
               label: const Text(
-                "Sign In",
+                "Giriş Yap",
                 style: TextStyle(fontSize: 24),
               ),
               onPressed: signIn,
@@ -466,7 +468,7 @@ class _LoginWidgetState extends State<LoginWidget> {
             const SizedBox(height: 24),
             GestureDetector(
               child: const Text(
-                "Forgot Password?",
+                "Şifremi Unuttum",
                 style: TextStyle(
                   decoration: TextDecoration.underline,
                   color: Colors.black,
@@ -484,12 +486,12 @@ class _LoginWidgetState extends State<LoginWidget> {
                 text: TextSpan(
                     style: const TextStyle(
                         color: Color.fromARGB(255, 0, 0, 0), fontSize: 16),
-                    text: "No account ?   ",
+                    text: "Hesabınız yok mu?  ",
                     children: [
                   TextSpan(
                       recognizer: TapGestureRecognizer()
                         ..onTap = widget.onClickedSignUp,
-                      text: "Sign Up",
+                      text: "Kayıt Ol",
                       style: TextStyle(
                           decoration: TextDecoration.underline,
                           color: Theme.of(context).colorScheme.secondary))
@@ -539,7 +541,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: const Text("Reset Password"),
+          title: const Text("Şifreyi Sıfırla"),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
@@ -549,7 +551,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  "Receive an email to \n reset your password",
+                  "Şifremi Unuttum",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24),
                 ),
@@ -560,11 +562,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   controller: emailController,
                   cursorColor: Colors.white,
                   textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(labelText: "E-mail"),
+                  decoration: const InputDecoration(labelText: "E-Posta"),
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (email) =>
                       email != null && !EmailValidator.validate(email)
-                          ? "Enter a valid email"
+                          ? "Lütfen geçerli bir e-posta adresi giriniz."
                           : null,
                 ),
                 const SizedBox(
@@ -576,7 +578,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ),
                   icon: const Icon(Icons.email_outlined),
                   label: const Text(
-                    "Reset Password",
+                    "Şifremi Sıfırla",
                     style: TextStyle(fontSize: 24),
                   ),
                   onPressed: resetPassword,
@@ -598,7 +600,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       await FirebaseAuth.instance
           .sendPasswordResetEmail(email: emailController.text.trim());
 
-      Utils.showSnackBar("Password reset e-mail sent!", Colors.green);
+      Utils.showSnackBar("Şifre sıfırlama talebi gönderildi!", Colors.green);
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on FirebaseAuthException catch (e) {
       Utils.showSnackBar(e.message, Colors.red);

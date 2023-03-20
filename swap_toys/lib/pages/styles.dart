@@ -17,4 +17,10 @@ const TextStyle appBar = TextStyle(
   fontSize: 23,
 );
 
+const TextStyle usernameStyle = TextStyle(
+    fontSize: 12,
+    fontFamily: 'Montserrat',
+    fontWeight: FontWeight.w500,
+    color: Colors.blue);
+
 const Color backgroundColorDefault = Color.fromARGB(255, 244, 237, 249);
