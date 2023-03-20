@@ -117,7 +117,7 @@ class CustomSearchDelegate extends SearchDelegate {
 
   List<user> getMatchedUsers(String query) {
     List<user> matcheds = [];
-    print(allUsers);
+
     for (var user in allUsers) {
       if (user.isAboutMe(query)) matcheds.add(user);
     }

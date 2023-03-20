@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:swap_toys/models/product.dart';
 import 'package:swap_toys/models/user.dart';
@@ -13,6 +14,7 @@ import 'package:swap_toys/pages/message_page.dart';
 import 'package:swap_toys/pages/search_page.dart';
 import 'package:swap_toys/pages/home_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
+import 'package:swap_toys/pages/styles.dart';
 
 late user User_;
 
@@ -93,22 +95,27 @@ class _AppPageState extends State<AppPage> {
       body: screens[currentPageIndex],
       bottomNavigationBar: GNav(
         selectedIndex: currentPageIndex,
-        color: Color.fromARGB(255, 244, 237, 249),
-        activeColor: Colors.blue,
-        backgroundColor: Colors.white,
+        color: backgroundColorDefault,
+        backgroundColor: Colors.blue,
+        activeColor: Colors.indigo,
+        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
         duration: Duration(milliseconds: 0),
         tabs: const [
           GButton(
             icon: Icons.explore,
+            iconSize: 30,
           ),
           GButton(
             icon: Icons.search,
+            iconSize: 30,
           ),
           GButton(
-            icon: Icons.account_box,
+            icon: Icons.account_circle,
+            iconSize: 30,
           ),
           GButton(
             icon: Icons.mail_outline,
+            iconSize: 30,
           )
         ],
         onTabChange: (index) {
@@ -292,88 +299,141 @@ class _SignUpWidgetState extends State<SignUpWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 40,
-              ),
-              TextFormField(
-                controller: emailController,
-                cursorColor: Colors.white,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: "E-Posta"),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: (email) =>
-                    email != null && !EmailValidator.validate(email)
-                        ? "Lütfen geçerli bir e-posta adresi giriniz."
-                        : null,
-              ),
-              const SizedBox(height: 4),
-              TextFormField(
-                controller: displayName,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: "Kullanıcı Adı"),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: ((value) => value != null && value.length < 6
-                    ? "Lütfen en az 2 karakter giriniz."
-                    : null),
-              ),
-              const SizedBox(height: 4),
-              TextFormField(
-                controller: passwordController,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: "Şifre"),
-                obscureText: true,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: ((value) => value != null && value.length < 6
-                    ? "Lütfen en az 6 karakter giriniz."
-                    : null),
-              ),
-              const SizedBox(height: 4),
-              TextFormField(
-                controller: confirmPasswordController,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: "Şifreyi doğrula"),
-                obscureText: true,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: ((value) =>
-                    value != null && value != passwordController.text.trim()
-                        ? "Şifreleriniz uyuşmuyor!"
+  Widget build(BuildContext context) => Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
+      body: Container(
+          decoration: const BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage('lib/assets/images/background.png'),
+                  fit: BoxFit.cover)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(46, 60, 46, 0),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(" Kayıt Ol",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800)),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: emailController,
+                    cursorColor: Colors.white,
+                    textInputAction: TextInputAction.next,
+                    style: TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                        labelText: "E-Posta",
+                        labelStyle: TextStyle(color: Colors.white),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white)),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white))),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (email) =>
+                        email != null && !EmailValidator.validate(email)
+                            ? "Lütfen geçerli bir e-posta adresi giriniz."
+                            : null,
+                  ),
+                  const SizedBox(height: 4),
+                  TextFormField(
+                    controller: displayName,
+                    textInputAction: TextInputAction.done,
+                    style: TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                        labelText: "Kullanıcı Adı",
+                        labelStyle: TextStyle(color: Colors.white),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white)),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white))),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: ((value) => value != null && value.length < 6
+                        ? "Lütfen en az 2 karakter giriniz."
                         : null),
+                  ),
+                  const SizedBox(height: 4),
+                  TextFormField(
+                    controller: passwordController,
+                    textInputAction: TextInputAction.done,
+                    style: TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                        labelText: "Şifre",
+                        labelStyle: TextStyle(color: Colors.white),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white)),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white))),
+                    obscureText: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: ((value) => value != null && value.length < 6
+                        ? "Lütfen en az 6 karakter giriniz."
+                        : null),
+                  ),
+                  const SizedBox(height: 4),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    textInputAction: TextInputAction.done,
+                    style: TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                        labelText: "Şifreyi doğrula",
+                        labelStyle: TextStyle(color: Colors.white),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white)),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white))),
+                    obscureText: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: ((value) =>
+                        value != null && value != passwordController.text.trim()
+                            ? "Şifreleriniz uyuşmuyor!"
+                            : null),
+                  ),
+                  const SizedBox(height: 35),
+                  Center(
+                      child: ElevatedButton(
+                    style: ButtonStyle(
+                        minimumSize: MaterialStateProperty.all<Size>(
+                            const Size(300, 45)),
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.white),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22)))),
+                    child: Text(
+                      "Kayıt Ol",
+                      style:
+                          TextStyle(fontSize: 20, color: Colors.blue.shade600),
+                    ),
+                    onPressed: signUp,
+                  )),
+                  const SizedBox(height: 100),
+                  Center(
+                      child: Text("Zaten hesabınız var mı?",
+                          style: TextStyle(color: Colors.white))),
+                  SizedBox(height: 8),
+                  Center(
+                      child: ElevatedButton(
+                    style: ButtonStyle(
+                        minimumSize: MaterialStateProperty.all<Size>(
+                            const Size(120, 45)),
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.white),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22)))),
+                    child: Text(
+                      "Giriş Yap",
+                      style:
+                          TextStyle(fontSize: 20, color: Colors.blue.shade600),
+                    ),
+                    onPressed: widget.onClickedSignIn,
+                  )),
+                ],
               ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.lock_open, size: 32),
-                label: const Text(
-                  "Kayıt Ol",
-                  style: TextStyle(fontSize: 24),
-                ),
-                onPressed: signUp,
-              ),
-              const SizedBox(height: 24),
-              RichText(
-                  text: TextSpan(
-                      style: const TextStyle(
-                          color: Color.fromARGB(255, 0, 0, 0), fontSize: 16),
-                      text: "Zaten bir hesabınız var mı? ",
-                      children: [
-                    TextSpan(
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = widget.onClickedSignIn,
-                        text: "Giriş Yap",
-                        style: TextStyle(
-                            decoration: TextDecoration.underline,
-                            color: Theme.of(context).colorScheme.secondary))
-                  ]))
-            ],
-          ),
-        ),
-      );
+            ),
+          )));
 
   Future signUp() async {
     final isValid = formKey.currentState!.validate();

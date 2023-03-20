@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 168.98 365.28">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Degradado_sin_nombre_10);
+      }
+
+      .cls-2 {
+        fill: url(#Degradado_sin_nombre_9-2);
+      }
+
+      .cls-2, .cls-3 {
+        fill-rule: evenodd;
+      }
+
+      .cls-4 {
+        clip-path: url(#clippath);
+      }
+
+      .cls-5 {
+        fill: none;
+      }
+
+      .cls-3 {
+        fill: url(#Degradado_sin_nombre_9);
+      }
+    </style>
+    <linearGradient id="Degradado_sin_nombre_10" data-name="Degradado sin nombre 10" x1="0" y1="182.64" x2="168.98" y2="182.64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#62baf7"/>
+      <stop offset="1" stop-color="#2e83d3"/>
+    </linearGradient>
+    <clipPath id="clippath">
+      <rect class="cls-5" width="168.98" height="365.28" rx="18.07" ry="18.07"/>
+    </clipPath>
+    <linearGradient id="Degradado_sin_nombre_9" data-name="Degradado sin nombre 9" x1="-15.29" y1="125.45" x2="115.83" y2="125.45" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#418cff"/>
+      <stop offset="1" stop-color="#2e83d3" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="Degradado_sin_nombre_9-2" data-name="Degradado sin nombre 9" x1="3107.74" y1="488.26" x2="3238.86" y2="488.26" gradientTransform="translate(3282.81 717.81) rotate(-180)" xlink:href="#Degradado_sin_nombre_9"/>
+  </defs>
+  <g id="OBJECTS">
+    <g id="Mavi">
+      <rect class="cls-1" width="168.98" height="365.28" rx="18.07" ry="18.07"/>
+      <g class="cls-4">
+        <g>
+          <path class="cls-3" d="m-15.29,263.03c28.8-12.43,15.29-92.09,25.77-110.31,13.7-23.82,28.96-19.4,41.18-37.02,19.59-28.26,9.6-84.18,22.97-101.18C87.59-1.96,115.83-8.85,115.83-12.13H-15.29v275.16Z"/>
+          <path class="cls-2" d="m175.07,91.97c-28.8,12.43-15.29,92.09-25.77,110.31-13.7,23.82-28.96,19.4-41.18,37.02-19.59,28.26-9.6,84.18-22.97,101.18-12.96,16.48-41.2,23.37-41.2,26.65h131.12V91.97Z"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
