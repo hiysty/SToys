@@ -165,10 +165,14 @@ class Product {
   }
 
   bool isAboutMe(String query) {
+    List<String> QW_list = query.split(" ");
+
     for (String word in Terms()) {
       final word_ = word.toLowerCase();
-      final query_ = query.toLowerCase();
-      if (word_.contains(query_)) return true;
+      for (var QW in QW_list) {
+        final QW_L = QW.toLowerCase();
+        if (word_.contains(QW_L)) return true;
+      }
     }
     return false;
   }

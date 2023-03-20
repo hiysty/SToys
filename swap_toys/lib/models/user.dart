@@ -46,13 +46,15 @@ class user {
   }
 
   bool isAboutMe(String query) {
-    List<String> words = this.displayName.split(" ");
+    List<String> DisplayNamewords = this.displayName.split(" ");
+    List<String> QueryWords = query.split(" ");
 
-    for (var word in words) {
-      String word_ = word.toLowerCase();
-      String query_ = query.toLowerCase();
-
-      if (word_.contains(query_)) return true;
+    for (var DNW in DisplayNamewords) {
+      for (var QW in QueryWords) {
+        String Qw_L = QW.toLowerCase();
+        String DNW_L = DNW.toLowerCase();
+        if (DNW_L.contains(Qw_L)) return true;
+      }
     }
 
     return false;
