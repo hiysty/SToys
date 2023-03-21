@@ -8,6 +8,7 @@ import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
 import 'package:swap_toys/models/user.dart';
 import 'package:swap_toys/pages/inspectProduct_page.dart';
+import 'package:swap_toys/pages/photogrammetryInput_page.dart';
 import 'package:swap_toys/pages/styles.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 import 'profile_page.dart';
@@ -117,6 +118,16 @@ class _CreateProductState extends State<CreateProduct> {
                                 child: Text(value),
                               );
                             }).toList()),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          photogrammetryInputPage()));
+                            },
+                            child: Text("3D model oluştur.")),
                         const SizedBox(height: 10),
                         TabBar(
                             onTap: (value) {
@@ -380,15 +391,5 @@ class _CreateProductState extends State<CreateProduct> {
 
     print(links);
     return links;
-  }
-
-  Future updateSearchTerms() async {
-    List<Product> products = [];
-
-    Reference termsRef =
-        FirebaseStorage.instance.ref().child("searchTerms/terms.txt");
-    dynamic data = await termsRef.getData();
-    String termsText = utf8.decode(data);
-    String currentTags = "";
   }
 }

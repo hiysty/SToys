@@ -55,6 +55,7 @@ dependencies:
   textfield_tags: ^2.0.2
 
   flutter_svg: 
+  http: ^0.13.5
   
 dev_dependencies:
   flutter_test:
