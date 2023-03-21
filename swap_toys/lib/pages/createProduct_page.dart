@@ -127,7 +127,7 @@ class _CreateProductState extends State<CreateProduct> {
                                       builder: (context) =>
                                           photogrammetryInputPage()));
                             },
-                            child: Text("3D model oluştur.")),
+                            child: Text("3D Model Oluştur")),
                         const SizedBox(height: 10),
                         TabBar(
                             onTap: (value) {

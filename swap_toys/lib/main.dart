@@ -495,70 +495,113 @@ class _LoginWidgetState extends State<LoginWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 40,
-            ),
-            TextField(
-              controller: emailController,
-              cursorColor: Colors.white,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(labelText: "E-Posta"),
-            ),
-            const SizedBox(height: 4),
-            TextField(
-              controller: passwordController,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(labelText: "Şifre"),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.lock_open, size: 32),
-              label: const Text(
-                "Giriş Yap",
-                style: TextStyle(fontSize: 24),
+  Widget build(BuildContext context) => Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage('lib/assets/images/background.png'),
+                fit: BoxFit.cover)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(46, 60, 46, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(" Giriş Yap",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800)),
+              SizedBox(height: 20),
+              TextFormField(
+                controller: emailController,
+                cursorColor: Colors.white,
+                textInputAction: TextInputAction.next,
+                style: TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                    labelText: "E-Posta",
+                    labelStyle: TextStyle(color: Colors.white),
+                    enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white)),
+                    focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white))),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (email) =>
+                    email != null && !EmailValidator.validate(email)
+                        ? "Lütfen geçerli bir e-posta adresi giriniz."
+                        : null,
               ),
-              onPressed: signIn,
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              child: const Text(
-                "Şifremi Unuttum",
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  color: Colors.black,
-                  fontSize: 20,
+              const SizedBox(height: 4),
+              TextFormField(
+                controller: passwordController,
+                textInputAction: TextInputAction.done,
+                style: TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                    labelText: "Şifre",
+                    labelStyle: TextStyle(color: Colors.white),
+                    enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white)),
+                    focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white))),
+                obscureText: true,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: ((value) => value != null && value.length < 6
+                    ? "Lütfen en az 6 karakter giriniz."
+                    : null),
+              ),
+              const SizedBox(height: 4),
+              const SizedBox(height: 35),
+              Center(
+                  child: ElevatedButton(
+                style: ButtonStyle(
+                    minimumSize:
+                        MaterialStateProperty.all<Size>(const Size(300, 45)),
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22)))),
+                child: Text(
+                  "Giriş Yap",
+                  style: TextStyle(fontSize: 20, color: Colors.blue.shade600),
                 ),
-              ),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => ForgotPasswordPage(),
+                onPressed: signIn,
               )),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            RichText(
-                text: TextSpan(
-                    style: const TextStyle(
-                        color: Color.fromARGB(255, 0, 0, 0), fontSize: 16),
-                    text: "Hesabınız yok mu?  ",
-                    children: [
-                  TextSpan(
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = widget.onClickedSignUp,
-                      text: "Kayıt Ol",
-                      style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          color: Theme.of(context).colorScheme.secondary))
-                ]))
-          ],
+              const SizedBox(height: 5),
+              GestureDetector(
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ForgotPasswordPage())),
+                  child: Center(
+                    child: const Text(
+                      "Şifremi Unuttum",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )),
+              const SizedBox(height: 100),
+              Center(
+                  child: Text("Hesabınız yok mu?",
+                      style: TextStyle(color: Colors.white))),
+              SizedBox(height: 8),
+              Center(
+                  child: ElevatedButton(
+                style: ButtonStyle(
+                    minimumSize:
+                        MaterialStateProperty.all<Size>(const Size(120, 45)),
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22)))),
+                child: Text(
+                  "Kayıt Ol",
+                  style: TextStyle(fontSize: 20, color: Colors.blue.shade600),
+                ),
+                onPressed: widget.onClickedSignUp,
+              )),
+            ],
+          ),
         ),
-      );
+      ));
+
   Future signIn() async {
     showDialog(
       context: context,
@@ -598,13 +641,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text("Şifreyi Sıfırla"),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
+          body: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage('lib/assets/images/background.png'),
+                fit: BoxFit.cover)),
+        child: Padding(
+          padding: const EdgeInsets.all(40),
           child: Form(
             key: formKey,
             child: Column(
@@ -613,7 +656,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 const Text(
                   "Şifremi Unuttum",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24),
+                  style: TextStyle(
+                      fontSize: 30,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(
                   height: 20,
@@ -622,7 +668,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   controller: emailController,
                   cursorColor: Colors.white,
                   textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(labelText: "E-Posta"),
+                  decoration: const InputDecoration(
+                      labelText: "E-Posta",
+                      labelStyle: TextStyle(color: Colors.white),
+                      enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white)),
+                      focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white))),
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (email) =>
                       email != null && !EmailValidator.validate(email)
@@ -632,22 +684,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 const SizedBox(
                   height: 20,
                 ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                  ),
-                  icon: const Icon(Icons.email_outlined),
-                  label: const Text(
-                    "Şifremi Sıfırla",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  onPressed: resetPassword,
-                )
+                ElevatedButton(
+                    onPressed: resetPassword,
+                    style: ButtonStyle(
+                        minimumSize: MaterialStateProperty.all<Size>(
+                            const Size(120, 45)),
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.white),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22)))),
+                    child: const Text(
+                      "Şiremi Sıfırla",
+                      style: TextStyle(color: Colors.blue),
+                    ))
               ],
             ),
           ),
         ),
-      );
+      ));
 
   void resetPassword() async {
     showDialog(

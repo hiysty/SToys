@@ -52,21 +52,25 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Photogrammetry Input"),
+        title: const Text("3D Model Oluştur"),
       ),
       body: Column(
         children: [
-          SizedBox(
+          const SizedBox(
             height: 15,
           ),
           Container(
             alignment: Alignment.center,
             color: Colors.black54,
-            height: 100,
             width: screenWidth,
-            child: Text(
-              "Ürünün modelini oluşturmak için ürünün fotoğrafları kullanılır. Ürün etrafında dolanarak , 360 dereceden fotoğrafları çekilir. Fotoğraflar arası fazla aralık olmamalıdır. Yaklaşık 25-30 fotoğraf yeterlidir.",
-              style: TextStyle(fontSize: 15, color: Colors.white),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            child: const Text(
+              "Ürünün modelini oluşturmak için ürünün fotoğrafları kullanılır. Ürün etrafında dolanarak 360 dereceden fotoğrafları çekilir. Fotoğraflar arası fazla aralık olmamalıdır. Yaklaşık 25-30 fotoğraf yeterlidir.",
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.justify,
             ),
           ),
           ElevatedButton.icon(
@@ -89,10 +93,10 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
                 if (path != null) localImgPaths.add(path);
               });
             },
-            icon: Icon(Icons.camera_alt_outlined),
-            label: Text("fotoğrafları çek"),
+            icon: const Icon(Icons.camera_alt_outlined),
+            label: const Text("Fotoğrafları Çek"),
           ),
-          SizedBox(
+          const SizedBox(
             height: 30,
           ),
           takenPics(),
