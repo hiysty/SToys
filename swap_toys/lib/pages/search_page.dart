@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/diagnostics.dart';
 import 'package:swap_toys/main.dart';
@@ -225,7 +226,7 @@ Future<List<Product>> getAll() async {
       await FirebaseFirestore.instance.collection("users").get();
   List<Product> productPool = [];
   for (QueryDocumentSnapshot user_ in users.docs) {
-    if (user_["displayName"] == User_.displayName) break;
+    if (user_["email"] == User_.email) continue;
     user usr = user(user_["displayName"], user_["email"]);
     allUsers.add(usr);
     productPool.addAll(await usr.MyProducts(user_));

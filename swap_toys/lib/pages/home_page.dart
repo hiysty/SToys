@@ -108,10 +108,12 @@ class _HomePageTileState extends State<HomePageTile> {
                               child: Center(
                                   child: Image.network(
                                 widget.product.imgLinksURLs[0],
-                                fit: BoxFit.fitHeight,
-                                height: 230,
+                                fit: BoxFit.fill,
                               ))),
-                          Container(color: Colors.white, height: 15)
+                          Container(
+                            color: Colors.white,
+                            height: 25,
+                          )
                         ],
                       ))));
         } else if (username.hasError) {

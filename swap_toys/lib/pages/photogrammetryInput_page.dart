@@ -90,7 +90,7 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
               );
               setState(() {
                 print(path);
-                if (path != null) localImgPaths.add(path);
+                if (path != null) setState(() => localImgPaths.addAll(path));
               });
             },
             icon: const Icon(Icons.camera_alt_outlined),

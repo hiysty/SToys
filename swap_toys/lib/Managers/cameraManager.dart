@@ -18,6 +18,8 @@ class TakePictureScreen extends StatefulWidget {
   TakePictureScreenState createState() => TakePictureScreenState();
 }
 
+List<String> takenImgPaths = [];
+
 class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
@@ -48,19 +50,58 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget getPicPreviews(int index) {
+      if (!takenImgPaths.isEmpty) {
+        return GestureDetector(
+            onLongPress: () => setState(() => takenImgPaths.removeAt(index)),
+            child: Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  image: DecorationImage(
+                      image: FileImage(File(takenImgPaths[index])),
+                      fit: BoxFit.fitWidth,
+                      alignment: FractionalOffset.topCenter)),
+            ));
+      } else
+        return Text("empty");
+    }
+
+    Widget takenPics() => Container(
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+          child: GridView.count(
+            crossAxisSpacing: 5,
+            mainAxisSpacing: 5,
+            shrinkWrap: true,
+            crossAxisCount: 3,
+            children: List.generate(
+                takenImgPaths.length, (index) => getPicPreviews(index)),
+          ),
+        );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Take a picture')),
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(_controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            FutureBuilder<void>(
+              future: _initializeControllerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return CameraPreview(_controller);
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+            takenPics(),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, takenImgPaths);
+              },
+              child: Text('My Button'),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         // Provide an onPressed callback.
@@ -77,9 +118,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!mounted) return;
 
-            Navigator.pop(context, image.path);
-            // If the picture was taken, display it on a new screen.
+            setState(() {
+              takenImgPaths.add(image.path);
+            });
 
+            // If the picture was taken, display it on a new screen.
           } catch (e) {
             // If an error occurs, log the error to the console.
             print(e);

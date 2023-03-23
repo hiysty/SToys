@@ -344,7 +344,7 @@ class _CreateProductState extends State<CreateProduct> {
         // Get a specific camera from the list of available cameras.
         final firstCamera = cameras.first;
 
-        var path = await Navigator.push(
+        List<String> paths = await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => TakePictureScreen(
@@ -352,7 +352,7 @@ class _CreateProductState extends State<CreateProduct> {
                   )),
         );
         setState(() {
-          if (path != null) localImgPaths.add(path);
+          if (!paths.isEmpty) localImgPaths.addAll(paths);
         });
       },
       icon: Transform(
