@@ -50,58 +50,62 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget getPicPreviews(int index) {
-      if (!takenImgPaths.isEmpty) {
-        return GestureDetector(
-            onLongPress: () => setState(() => takenImgPaths.removeAt(index)),
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  image: DecorationImage(
-                      image: FileImage(File(takenImgPaths[index])),
-                      fit: BoxFit.fitWidth,
-                      alignment: FractionalOffset.topCenter)),
-            ));
-      } else
-        return Text("empty");
-    }
-
     Widget takenPics() => Container(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-          child: GridView.count(
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 5,
-            shrinkWrap: true,
-            crossAxisCount: 3,
-            children: List.generate(
-                takenImgPaths.length, (index) => getPicPreviews(index)),
+          height: 150,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: takenImgPaths.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    image: DecorationImage(
+                        image: FileImage(File(takenImgPaths[index])),
+                        fit: BoxFit.fitWidth,
+                        alignment: FractionalOffset.topCenter),
+                  ),
+                  width: 150,
+                ),
+              );
+            },
           ),
         );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Take a picture')),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            FutureBuilder<void>(
-              future: _initializeControllerFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return CameraPreview(_controller);
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
-            takenPics(),
-            ElevatedButton(
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              FutureBuilder<void>(
+                future: _initializeControllerFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return CameraPreview(_controller);
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
+              takenPics(),
+            ],
+          ),
+          Positioned(
+            child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context, takenImgPaths);
+                var takens = takenImgPaths;
+                takenImgPaths = [];
+                Navigator.pop(context, takens);
               },
-              child: Text('My Button'),
+              child: Text('Ekle'),
             ),
-          ],
-        ),
+            bottom: 15,
+            left: 20,
+          )
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         // Provide an onPressed callback.

@@ -169,12 +169,12 @@ class _CreateProductState extends State<CreateProduct> {
                           return;
                         }
                         Product product = Product(
-                          titleController.text,
-                          statuValue,
-                          await uploadImgs(localImgPaths),
-                          descriptionController.text,
-                          User_.email,
-                        );
+                            titleController.text,
+                            statuValue,
+                            await uploadImgs(localImgPaths),
+                            descriptionController.text,
+                            User_.email,
+                            _controller.getTags!);
                         product.createProduct();
                       }),
                 ))));
@@ -363,8 +363,8 @@ class _CreateProductState extends State<CreateProduct> {
     );
   }
 
-  Future<Map> uploadImgs(List<String> paths) async {
-    final links = {"0": "1"};
+  Future<List<String>> uploadImgs(List<String> paths) async {
+    List<String> links = [];
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -384,7 +384,7 @@ class _CreateProductState extends State<CreateProduct> {
         url = await ref.getDownloadURL();
       });
 
-      links["$i"] = url;
+      links.add(url);
     }
     Navigator.pop(context);
     Navigator.pop(context);

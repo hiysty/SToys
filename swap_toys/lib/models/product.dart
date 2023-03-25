@@ -10,7 +10,6 @@ import 'package:swap_toys/models/user.dart';
 class Product {
   late String title;
   late int status;
-  late Map imgsLinksMap;
   late String description;
   late String email;
   late String firstImg;
@@ -22,9 +21,9 @@ class Product {
 
   late List<String> imgLinksURLs;
 
-  Product(this.title, this.status, this.imgsLinksMap, this.description,
-      this.email) {
-    firstImg = imgsLinksMap["0"];
+  Product(this.title, this.status, this.imgLinksURLs, this.description,
+      this.email, this.tags) {
+    firstImg = imgLinksURLs[0];
   }
 
   Future createProduct() async {
@@ -85,11 +84,12 @@ class Product {
       "title": title,
       "status": status,
       "desc": description,
-      "imgList": mapToListForImgLinks(imgsLinksMap),
+      "imgList": imgLinksURLs,
       "email": email,
       "exchangedTimes": 0,
       "category": "car",
-      "date_time": dateTime
+      "date_time": dateTime,
+      "tags": tags
     };
 
     return json;
@@ -129,18 +129,8 @@ class Product {
     return imgLinks_;
   }
 
-  Map listToMap(List<String> URLs) {
-    Map imageListMap = {};
-
-    for (var i = 0; i < URLs.length; i++) {
-      imageListMap["$i"] = URLs[i];
-    }
-
-    return imageListMap;
-  }
-
-  Future<Map> PathsToLinks(List<String> paths) async {
-    final imgLinks = {"0": "1"};
+  Future<List<String>> PathsToLinks(List<String> paths) async {
+    final List<String> imgLinks = [];
 
     for (var i = 0; i < paths.length; i++) {
       File file = File(paths[i]);
@@ -153,7 +143,7 @@ class Product {
         url = await ref.getDownloadURL();
       });
 
-      imgLinks["$i"] = url;
+      imgLinks.add(url);
     }
     return imgLinks;
   }

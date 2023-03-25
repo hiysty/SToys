@@ -177,7 +177,7 @@ class UpdateProductState extends State<UpdateProduct> {
           // Get a specific camera from the list of available cameras.
           final firstCamera = cameras.first;
 
-          String? path = await Navigator.push(
+          List<String> path = await Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => TakePictureScreen(
@@ -186,7 +186,7 @@ class UpdateProductState extends State<UpdateProduct> {
           );
 
           setState(() {
-            if (path != null) ImgPaths.add(path);
+            if (path != null) ImgPaths.addAll(path);
           });
         },
         icon: const Icon(Icons.add_a_photo_outlined),
@@ -198,14 +198,10 @@ class UpdateProductState extends State<UpdateProduct> {
   }
 
   void update_Button(List<String>? links) async {
-    Map? map;
+    List<String> map;
 
-    await localProduct.PathsToLinks(localImgPaths_).then((map_) {
-      map = map_;
-    });
-    imgLinks!.addAll(localProduct.mapToListForImgLinks(map));
-
-    localProduct.imgsLinksMap = localProduct.listToMap(links!);
+    map = await localProduct.PathsToLinks(localImgPaths_);
+    imgLinks!.addAll(map);
 
     localProduct.updateProduct();
   }
