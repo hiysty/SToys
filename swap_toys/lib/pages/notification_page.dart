@@ -72,53 +72,8 @@ class _NotificationPageState extends State<NotificationPage> {
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onPressed: () async {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(notification.recievedProduct.email)
-                          .collection('offers')
-                          .doc(notification.id.toString())
-                          .delete();
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(notification.givenProduct.email)
-                          .collection('notifications')
-                          .doc(notification.id.toString())
-                          .delete();
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(notification.recievedProduct.email)
-                          .collection('products')
-                          .doc(notification.recievedProduct.id)
-                          .delete();
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(notification.givenProduct.email)
-                          .collection('products')
-                          .doc(notification.givenProduct.id)
-                          .delete();
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(notification.recievedProduct.email)
-                          .collection('products')
-                          .doc(notification.givenProduct.id)
-                          .set(notification.givenProduct.toJSONExchangeComplete(
-                              notification.recievedProduct.email));
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(notification.givenProduct.email)
-                          .collection('products')
-                          .doc(notification.recievedProduct.id)
-                          .set(notification.recievedProduct
-                              .toJSONExchangeComplete(
-                                  notification.givenProduct.email));
-
+                      await acceptExchange(notification);
                       Navigator.of(context).pop();
-
                       getIncomingExchangeOffers();
                       setState(() {});
                     },
@@ -181,6 +136,110 @@ class _NotificationPageState extends State<NotificationPage> {
     getIncomingExchangeOffers();
     getOutgoingExchangeOffers();
     setState(() {});
+  }
+
+  Future acceptExchange(ExchangeNotification notification) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.recievedProduct.email)
+        .collection('offers')
+        .doc(notification.id.toString())
+        .delete();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.givenProduct.email)
+        .collection('notifications')
+        .doc(notification.id.toString())
+        .delete();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.recievedProduct.email)
+        .collection('products')
+        .doc(notification.recievedProduct.id)
+        .delete();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.givenProduct.email)
+        .collection('products')
+        .doc(notification.givenProduct.id)
+        .delete();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.recievedProduct.email)
+        .collection('products')
+        .doc(notification.givenProduct.id)
+        .set(notification.givenProduct
+            .toJSONExchangeComplete(notification.recievedProduct.email));
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.givenProduct.email)
+        .collection('products')
+        .doc(notification.recievedProduct.id)
+        .set(notification.recievedProduct
+            .toJSONExchangeComplete(notification.givenProduct.email));
+
+    for (var _notification in await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.givenProduct.email)
+        .collection('notifications')
+        .get()
+        .then((value) => value.docs)) {
+      if (_notification.data()["givenProduct"]["id"] ==
+          notification.givenProduct.id) {
+        _notification.reference.delete();
+      }
+    }
+
+    for (var _notification in await FirebaseFirestore.instance
+        .collection('users')
+        .doc(notification.recievedProduct.email)
+        .collection('notifications')
+        .get()
+        .then((value) => value.docs)) {
+      if (_notification.data()["recievedProduct"]["id"] ==
+          notification.recievedProduct.id) {
+        _notification.reference.delete();
+      }
+    }
+
+    for (var user in await FirebaseFirestore.instance
+        .collection('users')
+        .get()
+        .then((value) => value.docs)) {
+      for (var offer in await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.data()["email"])
+          .collection('offers')
+          .get()
+          .then((value) => value.docs)) {
+        if (offer.data()["recievedProduct"]["id"] ==
+            notification.givenProduct.id) {
+          offer.reference.delete();
+        }
+      }
+    }
+
+    for (var user in await FirebaseFirestore.instance
+        .collection('users')
+        .get()
+        .then((value) => value.docs)) {
+      for (var offer in await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.data()["email"])
+          .collection('notifications')
+          .get()
+          .then((value) => value.docs)) {
+        if (offer.data()["givenProduct"]["id"] ==
+            notification.recievedProduct.id) {
+          offer.reference.delete();
+        }
+      }
+    }
   }
 
   @override

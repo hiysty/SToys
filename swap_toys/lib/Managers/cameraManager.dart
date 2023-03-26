@@ -75,7 +75,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
+      appBar: AppBar(title: const Text('Resim çek')),
       body: Stack(
         children: [
           Column(

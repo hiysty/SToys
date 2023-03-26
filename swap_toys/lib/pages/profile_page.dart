@@ -1,10 +1,10 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:http/http.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
 import 'package:swap_toys/models/user.dart';
@@ -246,8 +246,7 @@ class _AccountPageState extends State<AccountPage> {
                               crossAxisCount: 3,
                               children:
                                   List.generate(snapshot.data!.length, (index) {
-                                return ProductGrid(
-                                    snapshot.data![index], index);
+                                return ProductGrid(snapshot.data![index]);
                               }),
                             );
                           } else {
@@ -278,26 +277,106 @@ class _AccountPageState extends State<AccountPage> {
 
 class ProductGrid extends StatelessWidget {
   Product product;
-  int index;
-  ProductGrid(this.product, this.index, {super.key});
+  ProductGrid(this.product, {super.key});
+
+  Future deleteProduct() async {
+    final userCollection = FirebaseFirestore.instance.collection('users');
+    final userDoc = userCollection.doc(User_.email);
+
+    await userDoc.collection('products').doc(product.id).delete();
+
+    for (var notification in await userDoc
+        .collection('notifications')
+        .get()
+        .then((value) => value.docs)) {
+      if (notification.data()["givenProduct"]["id"] == product.id) {
+        notification.reference.delete();
+      }
+    }
+
+    for (var offer in await userDoc
+        .collection('offers')
+        .get()
+        .then((value) => value.docs)) {
+      if (offer.data()["givenProduct"]["id"] == product.id) {
+        offer.reference.delete();
+      }
+    }
+
+    for (var user in await userCollection.get().then((value) => value.docs)) {
+      for (var notification in await user.reference
+          .collection('notifications')
+          .get()
+          .then((value) => value.docs)) {
+        if (product.id == notification.data()["recievedProduct"]["id"]) {
+          notification.reference.delete();
+        }
+      }
+
+      for (var offer in await user.reference
+          .collection('offers')
+          .get()
+          .then((value) => value.docs)) {
+        if (product.id == offer.data()["recievedProduct"]["id"]) {
+          offer.reference.delete();
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            image: DecorationImage(
-                image: NetworkImage(product.imgLinksURLs[0]),
-                fit: BoxFit.fitWidth,
-                alignment: FractionalOffset.topCenter)),
-      ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => InspectProductPage(product_: product)),
-        );
-      },
-    );
+    return GestureDetector(
+        onLongPress: () async {
+          showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                    title:
+                        const Text("Ürünü silmek istediğinize emin misiniz?"),
+                    actions: [
+                      IconButton(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await deleteProduct();
+                          },
+                          icon: const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 50,
+                          )),
+                      const SizedBox(width: 7),
+                      IconButton(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(
+                            Icons.cancel,
+                            color: Colors.red,
+                            size: 50,
+                          ))
+                    ],
+                    actionsAlignment: MainAxisAlignment.center,
+                    actionsPadding: const EdgeInsets.only(bottom: 25),
+                  ));
+        },
+        child: InkWell(
+          child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                image: DecorationImage(
+                    image: NetworkImage(product.imgLinksURLs[0]),
+                    fit: BoxFit.fitWidth,
+                    alignment: FractionalOffset.topCenter)),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => InspectProductPage(product_: product)),
+            );
+          },
+        ));
   }
 }
