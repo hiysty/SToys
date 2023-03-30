@@ -16,6 +16,7 @@ import '../Managers/cameraManager.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
+import 'package:http/http.dart' as http;
 
 const List<String> statusList = <String>[
   'Oldukça Eski',
@@ -168,13 +169,24 @@ class _CreateProductState extends State<CreateProduct> {
                           ));
                           return;
                         }
+
+                        Future<List<String>> getTags() async {
+                          List<String> tags = [];
+
+                          try {
+                            _controller.getTags!;
+                          } catch (e) {}
+                          tags.add(await imageLabelingTag(localImgPaths[0]));
+                          return tags;
+                        }
+
                         Product product = Product(
                             titleController.text,
                             statuValue,
                             await uploadImgs(localImgPaths),
                             descriptionController.text,
                             User_.email,
-                            _controller.getTags!);
+                            await getTags());
                         product.createProduct();
                       }),
                 ))));
@@ -344,13 +356,16 @@ class _CreateProductState extends State<CreateProduct> {
         // Get a specific camera from the list of available cameras.
         final firstCamera = cameras.first;
 
-        List<String> paths = await Navigator.push(
+        var value = await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => TakePictureScreen(
                     camera: firstCamera,
                   )),
         );
+        List<String> paths =
+            (value.runtimeType == List<String>) ? value : List.empty();
+
         setState(() {
           if (!paths.isEmpty) localImgPaths.addAll(paths);
         });
@@ -391,5 +406,15 @@ class _CreateProductState extends State<CreateProduct> {
 
     print(links);
     return links;
+  }
+
+  Future<String> imageLabelingTag(String image) async {
+    var request = http.MultipartRequest('POST',
+        Uri.parse('http://tchange.pythonanywhere.com/object-recognition'));
+    request.fields['user-productId'] = '${User_.email}or';
+    request.files.add(await http.MultipartFile.fromPath('photo', image));
+
+    var response = await request.send();
+    return response.stream.transform(utf8.decoder).join();
   }
 }

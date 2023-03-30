@@ -114,8 +114,6 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
   }
 
   void startPhotogrammetry() async {
-    print("baslamk");
-
     var request = http.MultipartRequest(
         'POST', Uri.parse('http://tchange.pythonanywhere.com/'));
     request.fields['user-productId'] = '${User_.email}';

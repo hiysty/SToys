@@ -75,7 +75,16 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Resim çek')),
+      appBar: AppBar(
+        title: const Text('Resim çek'),
+        leading: IconButton(
+          onPressed: () async {
+            takenImgPaths = List.empty();
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back_ios),
+        ),
+      ),
       body: Stack(
         children: [
           Column(
