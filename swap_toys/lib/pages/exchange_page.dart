@@ -179,8 +179,8 @@ class _ExchangePageState extends State<ExchangePage> {
                                             style: body),
                                         Text(
                                             givenProduct != null
-                                                ? givenProduct!.status
-                                                    .toString()
+                                                ? statusList[
+                                                    givenProduct!.status]
                                                 : "—",
                                             style: body)
                                       ])),

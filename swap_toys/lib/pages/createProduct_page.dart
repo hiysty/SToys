@@ -36,10 +36,11 @@ Future<void> CreateProductFunc(String path) async {
 }
 
 class CreateProduct extends StatefulWidget {
-  CreateProduct({super.key});
   @override
   State<CreateProduct> createState() => _CreateProductState();
   late String path;
+
+  CreateProduct({super.key});
 }
 
 class _CreateProductState extends State<CreateProduct> {
@@ -152,7 +153,7 @@ class _CreateProductState extends State<CreateProduct> {
                   floatingActionButton: FloatingActionButton.extended(
                       backgroundColor: Colors.blue,
                       icon: const Icon(Icons.upload),
-                      label: const Text('Ürün Yükle'),
+                      label: const Text("Ürün Yükle"),
                       onPressed: () async {
                         if (titleController.text.isEmpty) {
                           ScaffoldMessenger.of(context)
@@ -168,25 +169,22 @@ class _CreateProductState extends State<CreateProduct> {
                             backgroundColor: Colors.red,
                           ));
                           return;
+                        } else if (!_controller.hasTags) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text('En az bir etiket giriniz.'),
+                            backgroundColor: Colors.red,
+                          ));
+                          return;
                         }
-
-                        Future<List<String>> getTags() async {
-                          List<String> tags = [];
-
-                          try {
-                            _controller.getTags!;
-                          } catch (e) {}
-                          tags.add(await imageLabelingTag(localImgPaths[0]));
-                          return tags;
-                        }
-
                         Product product = Product(
                             titleController.text,
                             statuValue,
                             await uploadImgs(localImgPaths),
                             descriptionController.text,
                             User_.email,
-                            await getTags());
+                            _controller.getTags!,
+                            await imageLabelingTag(localImgPaths.first));
                         product.createProduct();
                       }),
                 ))));
@@ -363,8 +361,9 @@ class _CreateProductState extends State<CreateProduct> {
                     camera: firstCamera,
                   )),
         );
-        List<String> paths =
-            (value.runtimeType == List<String>) ? value : List.empty();
+        List<String> paths = (value.runtimeType == List<String>)
+            ? value
+            : List.empty(growable: true);
 
         setState(() {
           if (!paths.isEmpty) localImgPaths.addAll(paths);

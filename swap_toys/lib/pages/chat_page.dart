@@ -186,15 +186,22 @@ class _ChatPageState extends State<ChatPage> {
                                   alignment: message.isSentByMe
                                       ? Alignment.centerRight
                                       : Alignment.centerLeft,
-                                  child: Card(
-                                    elevation: 8,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Text(
-                                        message.text,
-                                      ),
-                                    ),
-                                  ))),
+                                  child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              3 *
+                                              2),
+                                      child: Card(
+                                        elevation: 8,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Text(
+                                            message.text,
+                                          ),
+                                        ),
+                                      )))),
                             );
                           } else if (stream.hasError) {
                             return ErrorPage(
@@ -207,6 +214,8 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                     color: Colors.grey.shade300,
                     child: TextField(
+                      maxLength: 300,
+                      maxLines: null,
                       enabled: !snapshot.data!["isBlocked"],
                       controller: controller,
                       decoration: InputDecoration(

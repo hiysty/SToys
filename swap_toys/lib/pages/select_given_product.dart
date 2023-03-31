@@ -44,96 +44,98 @@ class _SelectGivenProductPageState extends State<SelectGivenProductPage> {
   Widget build(BuildContext context) {
     mostEquivalentProduct = calcMostEquivalentProductOfMines();
     return Scaffold(
-      appBar: AppBar(title: const Text("Ürün Seç", style: appBar)),
-      body: Column(
-        children: [
-          Container(
-              color: Colors.white,
-              child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 7, 15, 7),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          selectedProduct != null
-                              ? selectedProduct!.title
-                              : "—",
-                          style: header,
-                        ),
-                        Text(
-                          User_.displayName,
-                          style: body,
-                        )
-                      ]))),
-          selectedProduct != null
-              ? Image(image: NetworkImage(selectedProduct!.imgLinksURLs[0]))
-              : const SizedBox(
-                  height: 300,
-                  child: Center(
-                    child: Text("Takas edilecek ürünü seçiniz"),
-                  )),
-          SizedBox(
-              width: double.infinity,
-              child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            selectedProduct != null
-                                ? "Durum: ${statusList[selectedProduct!.status]}"
-                                : "Durum:  —",
-                            style: header),
-                        Text(
-                          selectedProduct != null
-                              ? "Kategori: ${selectedProduct!.category}"
-                              : "Kategori:  —",
-                          style: header,
-                        ),
-                        Text(
-                          selectedProduct != null
-                              ? "Sahibi: ${selectedProduct!.exchangedTimes}"
-                              : "Sahibi:  —",
-                          style: header,
-                        ),
-                      ]))),
-          const Text('Ürünleriniz'),
-          const SizedBox(width: 10),
-          FutureBuilder(
-              future: getProducts(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return GridView.count(
-                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
-                    shrinkWrap: true,
-                    crossAxisCount: 3,
-                    children: List.generate(
-                        snapshot.data!.length,
-                        (index) => ProductGrid(
-                            snapshot.data![index], index.toString(), this)),
-                  );
-                } else if (snapshot.hasError) {
-                  return ErrorPage(errorCode: snapshot.error.toString());
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              }),
-          const SizedBox(
-            height: 20,
+        appBar: AppBar(title: const Text("Ürün Seç", style: appBar)),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                  color: Colors.white,
+                  child: Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 7, 15, 7),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              selectedProduct != null
+                                  ? selectedProduct!.title
+                                  : "—",
+                              style: header,
+                            ),
+                            Text(
+                              User_.displayName,
+                              style: body,
+                            )
+                          ]))),
+              selectedProduct != null
+                  ? Image(image: NetworkImage(selectedProduct!.imgLinksURLs[0]))
+                  : const SizedBox(
+                      height: 300,
+                      child: Center(
+                        child: Text("Takas edilecek ürünü seçiniz"),
+                      )),
+              SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                selectedProduct != null
+                                    ? "Durum: ${statusList[selectedProduct!.status]}"
+                                    : "Durum:  —",
+                                style: header),
+                            Text(
+                              selectedProduct != null
+                                  ? "Kategori: ${selectedProduct!.category}"
+                                  : "Kategori:  —",
+                              style: header,
+                            ),
+                            Text(
+                              selectedProduct != null
+                                  ? "Sahibi: ${selectedProduct!.exchangedTimes}"
+                                  : "Sahibi:  —",
+                              style: header,
+                            ),
+                          ]))),
+              const Text('Ürünleriniz'),
+              const SizedBox(width: 10),
+              FutureBuilder(
+                  future: getProducts(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return GridView.count(
+                        padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                        crossAxisSpacing: 5,
+                        mainAxisSpacing: 5,
+                        shrinkWrap: true,
+                        crossAxisCount: 3,
+                        children: List.generate(
+                            snapshot.data!.length,
+                            (index) => ProductGrid(
+                                snapshot.data![index], index.toString(), this)),
+                      );
+                    } else if (snapshot.hasError) {
+                      return ErrorPage(errorCode: snapshot.error.toString());
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                  }),
+              const SizedBox(
+                height: 20,
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, selectedProduct);
+                  },
+                  child: const Text(
+                    "SEÇ",
+                    style: TextStyle(
+                        color: Colors.white, fontFamily: 'Montserrat'),
+                  ))
+            ],
           ),
-          ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, selectedProduct);
-              },
-              child: const Text(
-                "SEÇ",
-                style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-              ))
-        ],
-      ),
-    );
+        ));
   }
 
   Product calcMostEquivalentProductOfMines() {

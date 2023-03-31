@@ -133,6 +133,8 @@ class MessageItem extends StatefulWidget {
 }
 
 class _MessageItemState extends State<MessageItem> {
+  final maxLength = 30;
+
   @override
   Widget build(BuildContext context) {
     showPopupMenu(Offset offset) async {
@@ -163,6 +165,10 @@ class _MessageItemState extends State<MessageItem> {
             PopupMenuItem(
                 onTap: widget.callback, child: const Text('Mesajları sil'))
           ]);
+    }
+
+    if (widget.lastMessage.length > maxLength) {
+      widget.lastMessage = "${widget.lastMessage.substring(0, maxLength)}...";
     }
 
     return Padding(
@@ -214,6 +220,9 @@ class _MessageItemState extends State<MessageItem> {
       lastMessage = await collection.doc(widget.id).get().then(
           (DocumentSnapshot value) =>
               value[lastMessageCount.toString()]['message']);
+      if (lastMessage.length > maxLength) {
+        lastMessage = "${lastMessage.substring(0, maxLength)}...";
+      }
     } catch (e) {
       lastMessage = "";
     }

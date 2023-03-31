@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:swap_toys/main.dart';
 import 'package:swap_toys/models/product.dart';
@@ -31,6 +32,20 @@ class InspectProductPage extends StatefulWidget {
 class InspectProductPageState extends State<InspectProductPage> {
   InspectProductPageState();
   List<Widget> images = [];
+  final pageController = PageController(initialPage: 0);
+
+  Future<Map<String, String>> getData() async {
+    String displayName = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(product.email)
+        .get()
+        .then((value) => value['displayName']);
+
+    return {
+      'displayName': displayName,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     getImagesViaUrl(product.imgLinksURLs).then((value) {
@@ -45,70 +60,82 @@ class InspectProductPageState extends State<InspectProductPage> {
           'Ürün İncele',
           style: appBar,
         )),
-        body: FutureBuilder(
-            future: FirebaseFirestore.instance
-                .collection('users')
-                .doc(product.email)
-                .get()
-                .then((value) => value['displayName']),
+        body: FutureBuilder<Map<String, String>>(
+            future: getData(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return Column(
+                return SingleChildScrollView(
+                    child: Column(
                   children: [
+                    SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: 500,
+                        child: PageView(
+                          controller: pageController,
+                          children: images,
+                        )),
                     Container(
                         color: Colors.white,
-                        child: Padding(
-                            padding: const EdgeInsets.fromLTRB(15, 7, 15, 7),
-                            child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    product.title,
-                                    style: header,
-                                  ),
-                                  Text(
-                                    snapshot.data,
-                                    style: body,
-                                  )
-                                ]))),
-                    Container(
-                      color: backgroundColorDefault,
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.width,
-                      child: PageView(
-                        children: images,
-                      ),
-                    ),
-                    SizedBox(
                         width: double.infinity,
                         child: Padding(
                             padding: const EdgeInsets.all(10),
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Text(product.title,
+                                      style: const TextStyle(
+                                          fontSize: 22,
+                                          fontFamily: 'Montserrat',
+                                          fontWeight: FontWeight.w600,
+                                          color: Color.fromARGB(
+                                              255, 31, 62, 166))),
                                   Text(product.description,
-                                      textAlign: TextAlign.left, style: header),
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  Text("Durum: ${statusList[product.status]}",
-                                      style: header),
-                                  Text(
-                                    "Kategori: ${product.category}",
-                                    style: header,
-                                  ),
-                                  Text(
-                                    "Sahibi: ${product.exchangedTimes}",
-                                    style: header,
-                                  ),
-                                  const SizedBox(
-                                    height: 20,
-                                  )
+                                      textAlign: TextAlign.left, style: body),
                                 ]))),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Flexible(
+                            child: Container(
+                                color: Colors.white,
+                                width:
+                                    MediaQuery.of(context).size.width / 3 - 10,
+                                height: 100,
+                                child: Center(
+                                    child: Text(
+                                  "Durum:\n${statusList[product.status]}",
+                                  style: header,
+                                  textAlign: TextAlign.center,
+                                )))),
+                        Container(
+                            color: Colors.white,
+                            width: MediaQuery.of(context).size.width / 3 - 10,
+                            height: 100,
+                            child: Center(
+                              child: Text(
+                                "Kategori:\n${product.category}",
+                                style: header,
+                                textAlign: TextAlign.center,
+                              ),
+                            )),
+                        Container(
+                          color: Colors.white,
+                          width: MediaQuery.of(context).size.width / 3 - 10,
+                          height: 100,
+                          child: Center(
+                              child: Text(
+                            "Sahibi:\n${product.exchangedTimes}",
+                            style: header,
+                            textAlign: TextAlign.center,
+                          )),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
                     updateExchangeButton(context)
                   ],
-                );
+                ));
               } else if (snapshot.hasError) {
                 return ErrorPage(errorCode: snapshot.error.toString());
               } else {
@@ -123,7 +150,7 @@ class InspectProductPageState extends State<InspectProductPage> {
     for (String url in urlList) {
       Widget img = Image(
         image: NetworkImage(url),
-        fit: BoxFit.fitHeight,
+        fit: BoxFit.fitWidth,
       );
       imageWidgets.add(img);
     }

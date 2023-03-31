@@ -79,7 +79,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         title: const Text('Resim çek'),
         leading: IconButton(
           onPressed: () async {
-            takenImgPaths = List.empty();
+            takenImgPaths = List.empty(growable: true);
             Navigator.pop(context);
           },
           icon: const Icon(Icons.arrow_back_ios),

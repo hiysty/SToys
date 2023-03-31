@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:http/http.dart';
 import 'package:swap_toys/main.dart';
+import 'package:swap_toys/pages/error_page.dart';
 
 import '../Managers/cameraManager.dart';
 import 'package:camera/camera.dart';
@@ -20,10 +21,8 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     Widget getPicPreviews(int index) {
-      if (!localImgPaths.isEmpty) {
+      if (localImgPaths.isNotEmpty) {
         return GestureDetector(
             onLongPress: () => setState(() => localImgPaths.removeAt(index)),
             child: Container(
@@ -34,8 +33,9 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
                       fit: BoxFit.fitWidth,
                       alignment: FractionalOffset.topCenter)),
             ));
-      } else
-        return Text("empty");
+      } else {
+        return const ErrorPage(errorCode: "No Image");
+      }
     }
 
     Widget takenPics() => Container(
@@ -51,66 +51,63 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
         );
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("3D Model Oluştur"),
-        ),
-        body: SingleChildScrollView(
-            child: Column(
-          children: [
-            const SizedBox(
-              height: 15,
-            ),
-            Container(
-              alignment: Alignment.center,
-              color: Colors.black54,
-              width: screenWidth,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              child: const Text(
-                "Ürünün modelini oluşturmak için ürünün fotoğrafları kullanılır. Ürün etrafında dolanarak 360 dereceden fotoğrafları çekilir. Fotoğraflar arası fazla aralık olmamalıdır. Yaklaşık 25-30 fotoğraf yeterlidir.",
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.justify,
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () async {
-                WidgetsFlutterBinding.ensureInitialized();
-
-                final cameras = await availableCameras();
-                // Get a specific camera from the list of available cameras.
-                final firstCamera = cameras.first;
-
-                var path = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => TakePictureScreen(
-                            camera: firstCamera,
-                          )),
-                );
-                setState(() {
-                  print(path);
-                  if (path != null) setState(() => localImgPaths.addAll(path));
-                });
+      appBar: AppBar(
+        title: const Text("3D Model Oluştur"),
+        leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            onPressed: () => Navigator.pop(context)),
+        actions: [
+          IconButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (context) => const AlertDialog(
+                          title: Text("Yardım"),
+                          content: Text(
+                              "Ürünün modelini oluşturmak için ürünün fotoğrafları kullanılır. Ürün etrafında dolanarak 360 dereceden fotoğrafları çekilir. Fotoğraflar arası fazla aralık olmamalıdır. Yaklaşık 25-30 fotoğraf yeterlidir."),
+                        ));
               },
-              icon: const Icon(Icons.camera_alt_outlined),
-              label: const Text("Fotoğrafları Çek"),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            takenPics(),
-            SizedBox(
-              height: 20,
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  startPhotogrammetry();
+              icon: const Icon(Icons.question_mark_rounded))
+        ],
+      ),
+      body: SingleChildScrollView(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  WidgetsFlutterBinding.ensureInitialized();
+
+                  final cameras = await availableCameras();
+                  // Get a specific camera from the list of available cameras.
+                  final firstCamera = cameras.first;
+
+                  var path = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TakePictureScreen(
+                              camera: firstCamera,
+                            )),
+                  );
+                  setState(() {
+                    print(path);
+                    if (path != null)
+                      setState(() => localImgPaths.addAll(path));
+                  });
                 },
-                child: Text("Tamamla"))
-          ],
-        )));
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text("Fotoğrafları Çek"),
+              ),
+              takenPics(),
+            ],
+          )),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => startPhotogrammetry(),
+        label: const Text("Tamamla"),
+        icon: const Icon(Icons.check),
+      ),
+    );
   }
 
   void startPhotogrammetry() async {

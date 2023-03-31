@@ -22,7 +22,7 @@ class Product {
   late List<String> imgLinksURLs;
 
   Product(this.title, this.status, this.imgLinksURLs, this.description,
-      this.email, this.tags) {
+      this.email, this.tags, this.category) {
     firstImg = imgLinksURLs[0];
   }
 
@@ -87,7 +87,7 @@ class Product {
       "imgList": imgLinksURLs,
       "email": email,
       "exchangedTimes": 0,
-      "category": "car",
+      "category": category,
       "date_time": dateTime,
       "tags": tags
     };
@@ -103,7 +103,7 @@ class Product {
       "imgList": imgLinksURLs,
       "email": email,
       "exchangedTimes": exchangedTimes,
-      "category": "car",
+      "category": category,
       "id": id
     };
   }
@@ -116,7 +116,7 @@ class Product {
       "imgList": imgLinksURLs,
       "email": newMail,
       "exchangedTimes": exchangedTimes + 1,
-      "category": "car",
+      "category": category,
       "id": id
     };
   }
