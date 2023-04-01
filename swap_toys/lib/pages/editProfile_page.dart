@@ -158,6 +158,14 @@ class _EditProfileState extends State<EditProfile> {
     final FirebaseStorage storage = FirebaseStorage.instance;
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     if (image != null) {
       await storage.ref('profilePictures/$imageName').putFile(image!);
     }
@@ -166,11 +174,15 @@ class _EditProfileState extends State<EditProfile> {
       await storage.ref().child('profilePictures/${User_.email}').delete();
     }
 
-    await firestore
-        .collection('users')
-        .doc(User_.email)
-        .update({'displayName': usernameController.text});
+    await firestore.collection('users').doc(User_.email).update({
+      'displayName': usernameController.text,
+      'profilePicture': await storage
+          .ref()
+          .child('profilePictures/$imageName')
+          .getDownloadURL()
+    });
 
+    Navigator.pop(context);
     Navigator.pop(context);
   }
 }

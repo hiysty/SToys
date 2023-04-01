@@ -149,7 +149,29 @@ class CustomSearchDelegate extends SearchDelegate {
                   MaterialPageRoute(
                       builder: (context) =>
                           InspectProductPage(product_: suggestion)),
-                );
+                ).then((value) async {
+                  if (suggestion.email == User_.email) return;
+
+                  final docRef = FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(User_.email);
+
+                  int newInterest = await docRef.get().then((doc) {
+                    try {
+                      final data = doc.data()!["interests"];
+                      try {
+                        return data[suggestion.category]! + 1;
+                      } catch (e) {
+                        return 1;
+                      }
+                    } catch (e) {
+                      return 1;
+                    }
+                  });
+                  await docRef.set({
+                    "interests": {suggestion.category: newInterest}
+                  }, SetOptions(merge: true));
+                });
                 query = suggestion.title;
               },
             );

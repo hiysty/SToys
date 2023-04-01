@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,6 +23,26 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Future<List<Product>> getHomePage() async {
     List<Product> data = [];
+    List<Product> rawData = [];
+    Map<String, int> interests;
+    try {
+      interests = Map<String, int>.from(await FirebaseFirestore.instance
+          .collection('users')
+          .doc(User_.email)
+          .get()
+          .then((value) => value.data()!["interests"]));
+    } catch (e) {
+      interests = {};
+    }
+
+    var sortedEntries = interests.entries.toList()
+      ..sort((a, b) {
+        var valueComparison = b.value.compareTo(a.value);
+        if (valueComparison != 0) {
+          return valueComparison;
+        }
+        return a.key.compareTo(b.key); // secondary comparison by key
+      });
 
     final users = await FirebaseFirestore.instance
         .collection('users')
@@ -35,10 +56,24 @@ class _HomePageState extends State<HomePage> {
             .get()
             .then((value) => value.docs);
         for (var product in products) {
-          data.add(Product.fromJson(product));
+          Product newProduct = Product.fromJson(product);
+          rawData.add(newProduct);
         }
       }
     }
+    List<String> mostLikedCategories = [];
+
+    final tempRawData = rawData.toList();
+
+    for (var element in tempRawData) {
+      for (var entry in sortedEntries) {
+        if (element.category == entry.key) {
+          data.add(element);
+          rawData.remove(element);
+        }
+      }
+    }
+    data.addAll(rawData);
 
     return data;
   }
@@ -93,6 +128,29 @@ class _HomePageTileState extends State<HomePageTile> {
     return !isLiked;
   }
 
+  Future manageInterests() async {
+    if (widget.product.email == User_.email) return;
+
+    final docRef =
+        FirebaseFirestore.instance.collection('users').doc(User_.email);
+
+    int newInterest = await docRef.get().then((doc) {
+      try {
+        final data = doc.data()!["interests"];
+        try {
+          return data[widget.product.category]! + 1;
+        } catch (e) {
+          return 1;
+        }
+      } catch (e) {
+        return 1;
+      }
+    });
+    await docRef.set({
+      "interests": {widget.product.category: newInterest}
+    }, SetOptions(merge: true));
+  }
+
   @override
   Widget build(BuildContext context) => FutureBuilder<Map<String, dynamic>>(
       future: getData(),
@@ -102,10 +160,11 @@ class _HomePageTileState extends State<HomePageTile> {
               padding: const EdgeInsets.only(bottom: 10),
               child: GestureDetector(
                   onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              InspectProductPage(product_: widget.product))),
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  InspectProductPage(product_: widget.product)))
+                      .then((value) => manageInterests()),
                   child: Container(
                       color: Colors.white,
                       child: Column(
@@ -114,14 +173,31 @@ class _HomePageTileState extends State<HomePageTile> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 7),
                               child: Row(children: [
-                                CircleAvatar(
-                                  radius: 24,
-                                  foregroundImage: NetworkImage(
-                                      data.data!["profilePicture"]),
-                                  backgroundImage: const AssetImage(
-                                      'lib/assets/images/default.png'),
-                                  backgroundColor: Colors.white,
-                                ),
+                                GestureDetector(
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => ProfilePage(
+                                                widget.product.email))).then(
+                                        (value) => ProfilePage(User_.email)),
+                                    child: Stack(children: [
+                                      const CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.transparent,
+                                          child: SizedBox(
+                                              height: 32,
+                                              width: 32,
+                                              child: Center(
+                                                  child:
+                                                      CircularProgressIndicator()))),
+                                      CircleAvatar(
+                                        radius: 24,
+                                        foregroundImage:
+                                            CachedNetworkImageProvider(
+                                                data.data!["profilePicture"]),
+                                        backgroundColor: Colors.transparent,
+                                      )
+                                    ])),
                                 const SizedBox(
                                   width: 10,
                                 ),
@@ -133,12 +209,25 @@ class _HomePageTileState extends State<HomePageTile> {
                                   ],
                                 )
                               ])),
-                          Container(
-                              color: Colors.grey.shade300,
+                          SizedBox(
                               width: MediaQuery.of(context).size.width,
-                              child: Image.network(
-                                widget.product.imgLinksURLs[0],
-                                fit: BoxFit.fill,
+                              child: CachedNetworkImage(
+                                imageUrl: widget.product.imgLinksURLs[0],
+                                fadeInDuration: Duration.zero,
+                                fadeOutDuration: Duration.zero,
+                                fit: BoxFit.fitWidth,
+                                progressIndicatorBuilder:
+                                    (context, url, progress) => Container(
+                                        color: Colors.grey.shade300,
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                2 /
+                                                3,
+                                        child: const Center(
+                                            child:
+                                                CircularProgressIndicator())),
                               )),
                           Container(
                             color: Colors.white,
@@ -190,7 +279,72 @@ class _HomePageTileState extends State<HomePageTile> {
         } else if (data.hasError) {
           return ErrorPage(errorCode: data.error.toString());
         } else {
-          return const Center(child: CircularProgressIndicator());
+          return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                  onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  InspectProductPage(product_: widget.product)))
+                      .then((value) => manageInterests()),
+                  child: Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height:
+                                  MediaQuery.of(context).size.height * 2 / 3,
+                              child: const Center(
+                                  child: CircularProgressIndicator())),
+                          Container(
+                            color: Colors.white,
+                            child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    LikeButton(
+                                      size: 37,
+                                      likeCount: 30,
+                                      onTap: likeButton,
+                                      likeBuilder: (isLiked) {
+                                        return Icon(
+                                          Icons.favorite_rounded,
+                                          size: 37,
+                                          color: isLiked
+                                              ? Colors.red
+                                              : Colors.blue,
+                                        );
+                                      },
+                                    ),
+                                    IconButton(
+                                      splashColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                      onPressed: () {},
+                                      icon: const Icon(
+                                        Icons.messenger_rounded,
+                                        size: 37,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                    IconButton(
+                                        enableFeedback: false,
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                          Icons.send_rounded,
+                                          color: Colors.blue,
+                                          size: 37,
+                                        ))
+                                  ],
+                                )),
+                          )
+                        ],
+                      ))));
         }
       });
 }

@@ -20,6 +20,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   Future<Map<String, dynamic>> getData() async {
+    //get data
     Map<String, dynamic> data = {};
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -39,7 +40,7 @@ class _ChatPageState extends State<ChatPage> {
           .collection('chats')
           .doc(widget.email)
           .get()
-          .then((value) => value['isBlocked'])
+          .then((value) => value.data()!["isBlocked"])
     });
 
     return data;
@@ -53,6 +54,12 @@ class _ChatPageState extends State<ChatPage> {
             EventSink<List<Message>> sink) {
       final messages = <Message>[];
       if (snapshot.exists) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(User_.email)
+            .collection('chats')
+            .doc(widget.email)
+            .set({"isRead": true}, SetOptions(merge: true));
         final data = snapshot.data()!;
         data.forEach((key, value) {
           if (value.runtimeType == bool) return;
@@ -91,7 +98,7 @@ class _ChatPageState extends State<ChatPage> {
 
       String name = await document
           .get()
-          .then((value) => (value.data()!.length).toString());
+          .then((value) => (value.data()!.length - 1).toString());
 
       Map<String, dynamic> data =
           await document.get().then((value) => value.data()!);
@@ -105,20 +112,22 @@ class _ChatPageState extends State<ChatPage> {
           .collection('chats')
           .doc(User_.email);
 
+      recieverDocument.set({"isRead": false}, SetOptions(merge: true));
+
       bool isBlocked = false;
 
       try {
         isBlocked =
-            await recieverDocument.get().then((value) => value['isBlocked']);
+            await recieverDocument.get().then((value) => value["isBlocked"]);
       } catch (e) {
-        recieverDocument.set({'isBlocked': isBlocked}, SetOptions(merge: true));
+        recieverDocument.set({"isBlocked": isBlocked}, SetOptions(merge: true));
       }
 
       if (isBlocked) return;
 
       String recieverName = await recieverDocument
           .get()
-          .then((value) => (value.data()!.length).toString());
+          .then((value) => (value.data()!.length - 1).toString());
 
       Map<String, dynamic> recieverData =
           await recieverDocument.get().then((value) => value.data()!);
@@ -225,9 +234,14 @@ class _ChatPageState extends State<ChatPage> {
                               : "Bu kullanıcıyı engellediniz.",
                           suffixIcon: IconButton(
                               icon: const Icon(Icons.send),
-                              onPressed: () =>
-                                  sendMessage(controller.text, controller))),
-                      onSubmitted: (text) => sendMessage(text, controller),
+                              onPressed: () {
+                                if (controller.text.isEmpty) return;
+                                sendMessage(controller.text, controller);
+                              })),
+                      onSubmitted: (text) {
+                        if (controller.text.isEmpty) return;
+                        sendMessage(text, controller);
+                      },
                       onEditingComplete: () {},
                     ))
               ]),
@@ -259,8 +273,10 @@ class Message {
   }
 
   Map<String, dynamic> toJSON() {
-    final json = {"message": text, "date_time": date, "user": User_.email};
-
-    return json;
+    return {
+      "message": text,
+      "date_time": date,
+      "user": User_.email,
+    };
   }
 }

@@ -6,6 +6,7 @@ import 'package:swap_toys/main.dart';
 import 'package:swap_toys/pages/chat_page.dart';
 import 'package:swap_toys/pages/error_page.dart';
 import 'package:swap_toys/pages/styles.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MessagePage extends StatefulWidget {
   @override
@@ -13,62 +14,42 @@ class MessagePage extends StatefulWidget {
 }
 
 class _MessagePageState extends State<MessagePage> {
-  Stream<List<MessageItem>> fetchData() async* {
-    final firestore = FirebaseFirestore.instance;
+  Stream<List<MessageItem>> fetchData() {
     final storage = FirebaseStorage.instance;
+    final firestore = FirebaseFirestore.instance;
 
-    final collection =
-        firestore.collection('users').doc(User_.email).collection('chats');
-
-    QuerySnapshot snapshot = await collection.get();
-
-    List<MessageItem> messageList = [];
-
-    for (var i = 0; i < snapshot.docs.length; i++) {
-      QueryDocumentSnapshot doc = snapshot.docs[i];
-
-      String username = await firestore
-          .collection('users')
-          .doc(doc.id)
-          .get()
-          .then((value) => value["displayName"]);
-
-      int lastMessageCount = await collection
-          .doc(doc.id)
-          .get()
-          .then((value) => value.data()!.length - 1);
-
-      String lastMessage;
-
-      try {
-        lastMessage = await collection.doc(doc.id).get().then(
-            (DocumentSnapshot value) =>
-                value[lastMessageCount.toString()]['message']);
-      } catch (e) {
-        lastMessage = "";
+    Stream<List<MessageItem>> data = firestore
+        .collection('users')
+        .doc(User_.email)
+        .collection('chats')
+        .snapshots()
+        .asyncMap((collection) async {
+      List<MessageItem> items = [];
+      for (var doc in collection.docs) {
+        List<MapEntry<String, dynamic>> entries = doc.data().entries.toList();
+        entries = entries.reversed.toList();
+        final entryCount = entries.length;
+        for (var i = 0; i < entryCount - 1; i++) {
+          if (entries[i].value.runtimeType == bool) entries.removeAt(i);
+        }
+        MessageItem item = MessageItem(
+            doc.id,
+            await firestore
+                .collection('users')
+                .doc(doc.id)
+                .get()
+                .then((value) => value.get("displayName")),
+            doc.data()[(entries.length - 1).toString()]["message"],
+            await storage
+                .ref()
+                .child('profilePictures/${doc.id}')
+                .getDownloadURL());
+        items.add(item);
       }
+      return items;
+    });
 
-      String profilePictureURL;
-
-      try {
-        profilePictureURL = await storage
-            .ref()
-            .child('profilePictures/${doc.id}')
-            .getDownloadURL();
-      } catch (e) {
-        profilePictureURL = await storage
-            .ref()
-            .child('profilePictures/default.png')
-            .getDownloadURL();
-      }
-
-      MessageItem messageItem =
-          MessageItem(doc.id, username, lastMessage, profilePictureURL);
-
-      messageList.add(messageItem);
-    }
-
-    yield messageList;
+    return data;
   }
 
   FutureOr deleteMessages(String email) async {
@@ -161,7 +142,7 @@ class _MessageItemState extends State<MessageItem> {
                     .doc(User_.email)
                     .collection('chats')
                     .doc(widget.id)
-                    .update({'isBlocked': !isBlocked})),
+                    .update({"isBlocked": !isBlocked})),
             PopupMenuItem(
                 onTap: widget.callback, child: const Text('Mesajları sil'))
           ]);
@@ -181,10 +162,9 @@ class _MessageItemState extends State<MessageItem> {
             child: ListTile(
                 onTap: () {
                   Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatPage(email: widget.id)))
-                      .then((value) => getLastMessage());
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ChatPage(email: widget.id)));
                 },
                 title: Text(widget.username, style: header),
                 subtitle: widget.lastMessage != ""
@@ -196,39 +176,10 @@ class _MessageItemState extends State<MessageItem> {
                     height: double.infinity,
                     child: CircleAvatar(
                         backgroundColor: Colors.white,
-                        foregroundImage: NetworkImage(
+                        foregroundImage: CachedNetworkImageProvider(
                           widget.profilePictureURL,
                         )))),
           ),
         ));
-  }
-
-  Future getLastMessage() async {
-    final collection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(User_.email)
-        .collection('chats');
-
-    String lastMessage;
-
-    int lastMessageCount = await collection
-        .doc(widget.id)
-        .get()
-        .then((value) => value.data()!.length - 1);
-
-    try {
-      lastMessage = await collection.doc(widget.id).get().then(
-          (DocumentSnapshot value) =>
-              value[lastMessageCount.toString()]['message']);
-      if (lastMessage.length > maxLength) {
-        lastMessage = "${lastMessage.substring(0, maxLength)}...";
-      }
-    } catch (e) {
-      lastMessage = "";
-    }
-
-    setState(() {
-      widget.lastMessage = lastMessage;
-    });
   }
 }

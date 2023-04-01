@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:badges/badges.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,6 +16,7 @@ import 'package:swap_toys/pages/search_page.dart';
 import 'package:swap_toys/pages/home_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/pages/styles.dart';
+import 'package:rxdart/rxdart.dart';
 
 late user User_;
 
@@ -66,6 +68,56 @@ class _AppPageState extends State<AppPage> {
     MessagePage()
   ];
 
+  Stream<Map<String, bool>> getBadges() {
+    final chats = FirebaseFirestore.instance
+        .collection('users')
+        .doc(User_.email)
+        .collection('chats')
+        .snapshots()
+        .map((snapshot) {
+      bool hasUnreadMessage = false;
+      for (var change in snapshot.docChanges) {
+        if (change.doc.exists && !change.doc.data()!['isRead']) {
+          hasUnreadMessage = true;
+          break;
+        }
+      }
+      return hasUnreadMessage;
+    });
+
+    final Stream<bool> offers = FirebaseFirestore.instance
+        .collection('users')
+        .doc(User_.email)
+        .collection('offers')
+        .snapshots()
+        .map((snapshot) {
+      bool hasOffer = false;
+      if (snapshot.docs.isNotEmpty) {
+        hasOffer = true;
+      }
+      return hasOffer;
+    });
+
+    final Stream<bool> notifications = FirebaseFirestore.instance
+        .collection('users')
+        .doc(User_.email)
+        .collection('notifications')
+        .snapshots()
+        .map((snapshot) {
+      bool hasOffer = false;
+      if (snapshot.docs.isNotEmpty) {
+        hasOffer = true;
+      }
+      return hasOffer;
+    });
+
+    final hasNotification =
+        Rx.combineLatest2(offers, notifications, (a, b) => a || b);
+
+    return Rx.combineLatest2(chats, hasNotification,
+        (message, profile) => {"message": message, "profile": profile});
+  }
+
   @override
   Widget build(BuildContext context) {
     Future<void> setuserProduct() async {
@@ -93,37 +145,104 @@ class _AppPageState extends State<AppPage> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 244, 237, 249),
       body: screens[currentPageIndex],
-      bottomNavigationBar: GNav(
-        selectedIndex: currentPageIndex,
-        color: backgroundColorDefault,
-        backgroundColor: Colors.blue,
-        activeColor: Colors.indigo,
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-        duration: Duration(milliseconds: 0),
-        tabs: const [
-          GButton(
-            icon: Icons.explore,
-            iconSize: 30,
-          ),
-          GButton(
-            icon: Icons.search,
-            iconSize: 30,
-          ),
-          GButton(
-            icon: Icons.account_circle,
-            iconSize: 30,
-          ),
-          GButton(
-            icon: Icons.mail_outline,
-            iconSize: 30,
-          )
-        ],
-        onTabChange: (index) {
-          setState(() {
-            currentPageIndex = index;
-          });
-        },
-      ),
+      bottomNavigationBar: StreamBuilder<Map<String, bool>>(
+          stream: getBadges(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return GNav(
+                selectedIndex: currentPageIndex,
+                color: backgroundColorDefault,
+                backgroundColor: Colors.blue,
+                activeColor: Colors.indigo,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+                duration: Duration.zero,
+                tabs: [
+                  const GButton(
+                    icon: Icons.explore_rounded,
+                    iconSize: 30,
+                  ),
+                  const GButton(
+                    icon: Icons.search_rounded,
+                    iconSize: 30,
+                  ),
+                  GButton(
+                      icon: Icons.account_circle_rounded,
+                      iconSize: 30,
+                      leading: snapshot.data!["profile"]!
+                          ? Badge(
+                              badgeContent: const Text(""),
+                              position: BadgePosition.topEnd(end: 0, top: -7),
+                              child: Icon(
+                                Icons.account_circle_rounded,
+                                color: currentPageIndex != 3
+                                    ? Colors.white
+                                    : Colors.indigo,
+                                size: 30,
+                              ),
+                            )
+                          : null),
+                  GButton(
+                      icon: Icons.mail_outline_rounded,
+                      iconSize: 30,
+                      leading: snapshot.data!["message"]!
+                          ? Badge(
+                              badgeContent: const Text(""),
+                              position: BadgePosition.topEnd(end: -2, top: -7),
+                              child: Icon(
+                                Icons.mail_outline_rounded,
+                                color: currentPageIndex != 3
+                                    ? Colors.white
+                                    : Colors.indigo,
+                                size: 30,
+                              ),
+                            )
+                          : null)
+                ],
+                onTabChange: (index) {
+                  setState(() {
+                    currentPageIndex = index;
+                  });
+                },
+              );
+            } else if (snapshot.hasError) {
+              print("eror");
+              return Container();
+            } else {
+              return GNav(
+                selectedIndex: currentPageIndex,
+                color: backgroundColorDefault,
+                backgroundColor: Colors.blue,
+                activeColor: Colors.indigo,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+                duration: Duration.zero,
+                tabs: const [
+                  GButton(
+                    icon: Icons.explore,
+                    iconSize: 30,
+                  ),
+                  GButton(
+                    icon: Icons.search,
+                    iconSize: 30,
+                  ),
+                  GButton(
+                    icon: Icons.account_circle,
+                    iconSize: 30,
+                  ),
+                  GButton(
+                    icon: Icons.mail_outline_rounded,
+                    iconSize: 30,
+                  )
+                ],
+                onTabChange: (index) {
+                  setState(() {
+                    currentPageIndex = index;
+                  });
+                },
+              );
+            }
+          }),
     );
   }
 }

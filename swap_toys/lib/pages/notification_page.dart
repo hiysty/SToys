@@ -72,7 +72,15 @@ class _NotificationPageState extends State<NotificationPage> {
                     splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onPressed: () async {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
                       await acceptExchange(notification);
+                      Navigator.pop(context);
                       Navigator.of(context).pop();
                       getIncomingExchangeOffers();
                       setState(() {});
@@ -103,6 +111,14 @@ class _NotificationPageState extends State<NotificationPage> {
 
   FutureOr cancelNotification(ExchangeNotification notification,
       {required bool isOutgoing}) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     if (isOutgoing) {
       await FirebaseFirestore.instance
           .collection('users')
@@ -132,6 +148,8 @@ class _NotificationPageState extends State<NotificationPage> {
           .doc(notification.id.toString())
           .delete();
     }
+
+    Navigator.pop(context);
 
     getIncomingExchangeOffers();
     getOutgoingExchangeOffers();

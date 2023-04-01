@@ -41,6 +41,7 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
     Widget takenPics() => Container(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
           child: GridView.count(
+            physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 5,
             mainAxisSpacing: 5,
             shrinkWrap: true,
@@ -111,6 +112,14 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
   }
 
   void startPhotogrammetry() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     var request = http.MultipartRequest(
         'POST', Uri.parse('http://tchange.pythonanywhere.com/'));
     request.fields['user-productId'] = '${User_.email}';
@@ -120,8 +129,11 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
     }
     var response = await request.send();
 
+    Navigator.pop(context);
+
     if (response.statusCode == HttpStatus.ok) {
       print('Request sent successfully.');
+      Navigator.pop(context);
     } else {
       print('Request failed with status: ${response.statusCode}');
     }

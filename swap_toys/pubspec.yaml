@@ -56,6 +56,11 @@ dependencies:
   image_picker: ^0.8.6
   textfield_tags: ^2.0.2
 
+  badges: ^3.0.3
+  rxdart:
+
+  cached_network_image: ^3.2.3
+
   flutter_svg: 
   http: ^0.13.5
   
@@ -65,6 +70,7 @@ dev_dependencies:
   camera:
   path_provider:
   path:
+  flutter_launcher_icons: 
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -72,6 +78,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "lib/assets/images/icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:badges/badges.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +16,9 @@ import 'package:swap_toys/pages/error_page.dart';
 import 'package:swap_toys/pages/inspectProduct_page.dart';
 import 'package:swap_toys/pages/notification_page.dart';
 import 'styles.dart';
+import 'package:rxdart/rxdart.dart';
 import 'createProduct_page.dart';
+import 'package:http/http.dart' as http;
 
 //profil
 late String userInspectorMail;
@@ -33,7 +37,7 @@ Future<Map<String, String>> fetchData(String mail) async {
     return {
       "displayName": displayName,
       "profilePicture":
-          await storage.ref().child('profilePictures/$mail').getDownloadURL()
+          await docRef.get().then((value) => value.get('profilePicture'))
     };
   } catch (e) {
     return {
@@ -94,11 +98,42 @@ class _ProfilePageState extends State<ProfilePage> {
         .doc(User_.email)
         .collection('chats')
         .doc(userMail)
-        .set({"isBlocked": isBlocked}, SetOptions(merge: true)).then((value) =>
+        .set({"isBlocked": false}, SetOptions(merge: true)).then((value) =>
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => ChatPage(email: userMail))));
+  }
+
+  Stream<bool> getBadge() {
+    final Stream<bool> offers = FirebaseFirestore.instance
+        .collection('users')
+        .doc(User_.email)
+        .collection('offers')
+        .snapshots()
+        .map((snapshot) {
+      bool hasOffer = false;
+      if (snapshot.docs.isNotEmpty) {
+        hasOffer = true;
+      }
+      return hasOffer;
+    });
+
+    final Stream<bool> notifications = FirebaseFirestore.instance
+        .collection('users')
+        .doc(User_.email)
+        .collection('notifications')
+        .snapshots()
+        .map((snapshot) {
+      bool hasOffer = false;
+      if (snapshot.docs.isNotEmpty) {
+        hasOffer = true;
+      }
+      return hasOffer;
+    });
+
+    return Rx.combineLatest2(
+        offers, notifications, (offer, notification) => offer || notification);
   }
 
   @override
@@ -110,41 +145,49 @@ class _ProfilePageState extends State<ProfilePage> {
                     style:
                         TextStyle(fontWeight: FontWeight.w700, fontSize: 23)),
                 actions: [
-                    PopupMenuButton(
-                        enableFeedback: false,
-                        splashRadius: 0.0001,
-                        itemBuilder: (context) => <PopupMenuEntry>[
-                              const PopupMenuItem(
-                                  value: 1, child: Text('Takas Tekliflerim')),
-                              const PopupMenuItem(
-                                  value: 2, child: Text('Ayarlar')),
-                              const PopupMenuItem(
-                                  value: 3, child: Text('Çıkış Yap'))
-                            ],
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 1:
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const NotificationPage()));
-                              break;
+                    StreamBuilder<bool>(
+                        stream: getBadge(),
+                        builder: (context, snapshot) => Badge(
+                            position: BadgePosition.topEnd(top: 9, end: 13),
+                            showBadge:
+                                snapshot.hasData ? snapshot.data! : false,
+                            child: PopupMenuButton(
+                                enableFeedback: false,
+                                splashRadius: 0.0001,
+                                itemBuilder: (context) => <PopupMenuEntry>[
+                                      const PopupMenuItem(
+                                          value: 1,
+                                          child: Text('Takas Tekliflerim')),
+                                      const PopupMenuItem(
+                                          value: 2, child: Text('Ayarlar')),
+                                      const PopupMenuItem(
+                                          value: 3, child: Text('Çıkış Yap'))
+                                    ],
+                                icon: const Icon(Icons.more_vert),
+                                onSelected: (value) {
+                                  switch (value) {
+                                    case 1:
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const NotificationPage()));
+                                      break;
 
-                            case 2:
-                              Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => EditProfile()))
-                                  .then(onGoBack);
-                              break;
+                                    case 2:
+                                      Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditProfile()))
+                                          .then(onGoBack);
+                                      break;
 
-                            case 3:
-                              FirebaseAuth.instance.signOut();
-                              break;
-                          }
-                        })
+                                    case 3:
+                                      FirebaseAuth.instance.signOut();
+                                      break;
+                                  }
+                                })))
                   ])
             : AppBar(
                 leading: IconButton(
@@ -214,16 +257,27 @@ class _AccountPageState extends State<AccountPage> {
               Padding(
                   padding: const EdgeInsets.fromLTRB(30, 10, 30, 20),
                   child: Row(children: [
-                    CircleAvatar(
-                        backgroundColor: Colors.white,
+                    Stack(children: [
+                      const CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Colors.transparent,
+                          child: Center(
+                              child: SizedBox(
+                                  width: 80,
+                                  height: 80,
+                                  child: CircularProgressIndicator()))),
+                      CircleAvatar(
+                        backgroundColor: Colors.transparent,
                         radius: 60,
-                        foregroundImage:
-                            NetworkImage(snapshot.data!['profilePicture']!)),
+                        foregroundImage: CachedNetworkImageProvider(
+                            snapshot.data!['profilePicture']!),
+                      )
+                    ]),
                     const SizedBox(width: 18),
                     Expanded(
                       child: Text(
                         snapshot.data!['displayName']!,
-                        style: TextStyle(fontSize: 18),
+                        style: const TextStyle(fontSize: 18),
                       ),
                     ),
                   ])),
@@ -250,8 +304,7 @@ class _AccountPageState extends State<AccountPage> {
                               }),
                             );
                           } else {
-                            return const Center(
-                                child: CircularProgressIndicator());
+                            return Container();
                           }
                         })),
               ),
@@ -259,19 +312,20 @@ class _AccountPageState extends State<AccountPage> {
           } else if (snapshot.hasError) {
             return ErrorPage(errorCode: snapshot.error.toString());
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return Container();
           }
         });
   }
 
-  Stream<List<Product>> readProducts() {
+  Stream<List<Product>>? readProducts() {
     return FirebaseFirestore.instance
-        .collection("users")
+        .collection('users')
         .doc(userMail)
-        .collection("products")
+        .collection('products')
+        .orderBy('date_time', descending: true)
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((doc) => Product.fromJson(doc)).toList());
+            snapshot.docs.map((e) => Product.fromJson(e)).toList());
   }
 }
 
@@ -324,6 +378,29 @@ class ProductGrid extends StatelessWidget {
     }
   }
 
+  Future manageInterests() async {
+    if (product.email == User_.email) return;
+
+    final docRef =
+        FirebaseFirestore.instance.collection('users').doc(User_.email);
+
+    int newInterest = await docRef.get().then((doc) {
+      try {
+        final data = doc.data()!["interests"];
+        try {
+          return data[product.category]! + 1;
+        } catch (e) {
+          return 1;
+        }
+      } catch (e) {
+        return 1;
+      }
+    });
+    await docRef.set({
+      "interests": {product.category: newInterest}
+    }, SetOptions(merge: true));
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -339,7 +416,15 @@ class ProductGrid extends StatelessWidget {
                           highlightColor: Colors.transparent,
                           onPressed: () async {
                             Navigator.pop(context);
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
                             await deleteProduct();
+                            Navigator.pop(context);
                           },
                           icon: const Icon(
                             Icons.check_circle,
@@ -362,21 +447,29 @@ class ProductGrid extends StatelessWidget {
                   ));
         },
         child: InkWell(
-          child: Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                image: DecorationImage(
-                    image: NetworkImage(product.imgLinksURLs[0]),
-                    fit: BoxFit.fitWidth,
-                    alignment: FractionalOffset.topCenter)),
-          ),
+          child: ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: CachedNetworkImage(
+                imageUrl: product.imgLinksURLs[0],
+                fadeInDuration: Duration.zero,
+                fadeOutDuration: Duration.zero,
+                fit: BoxFit.cover,
+                progressIndicatorBuilder: (context, url, progress) =>
+                    const Center(child: CircularProgressIndicator()),
+              )),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => InspectProductPage(product_: product)),
-            );
+            ).then((value) => manageInterests());
           },
         ));
+  }
+
+  Future<ImageProvider> getImage(String url) async {
+    final response = await http.get(Uri.parse(url));
+    final bytes = response.bodyBytes;
+    return MemoryImage(bytes);
   }
 }

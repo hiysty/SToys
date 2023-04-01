@@ -125,7 +125,7 @@ class InspectProductPageState extends State<InspectProductPage> {
                           height: 100,
                           child: Center(
                               child: Text(
-                            "Sahibi:\n${product.exchangedTimes}",
+                            "Sahibi:\n${product.exchangedTimes}.",
                             style: header,
                             textAlign: TextAlign.center,
                           )),

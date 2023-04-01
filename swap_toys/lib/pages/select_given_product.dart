@@ -45,6 +45,7 @@ class _SelectGivenProductPageState extends State<SelectGivenProductPage> {
     mostEquivalentProduct = calcMostEquivalentProductOfMines();
     return Scaffold(
         appBar: AppBar(title: const Text("Ürün Seç", style: appBar)),
+        backgroundColor: backgroundColorDefault,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -76,35 +77,61 @@ class _SelectGivenProductPageState extends State<SelectGivenProductPage> {
               SizedBox(
                   width: double.infinity,
                   child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Flexible(
+                            child: Container(
+                                color: Colors.white,
+                                width:
+                                    MediaQuery.of(context).size.width / 3 - 10,
+                                height: 100,
+                                child: Center(
+                                    child: Text(
+                                  selectedProduct != null
+                                      ? "Durum:\n${statusList[selectedProduct!.status]}"
+                                      : "Durum:\n—",
+                                  style: header,
+                                  textAlign: TextAlign.center,
+                                )))),
+                        Container(
+                            color: Colors.white,
+                            width: MediaQuery.of(context).size.width / 3 - 10,
+                            height: 100,
+                            child: Center(
+                              child: Text(
                                 selectedProduct != null
-                                    ? "Durum: ${statusList[selectedProduct!.status]}"
-                                    : "Durum:  —",
-                                style: header),
-                            Text(
-                              selectedProduct != null
-                                  ? "Kategori: ${selectedProduct!.category}"
-                                  : "Kategori:  —",
-                              style: header,
-                            ),
-                            Text(
-                              selectedProduct != null
-                                  ? "Sahibi: ${selectedProduct!.exchangedTimes}"
-                                  : "Sahibi:  —",
-                              style: header,
-                            ),
-                          ]))),
-              const Text('Ürünleriniz'),
-              const SizedBox(width: 10),
+                                    ? "Kategori:\n${selectedProduct!.category}"
+                                    : "Kategori:\n—",
+                                style: header,
+                                textAlign: TextAlign.center,
+                              ),
+                            )),
+                        Container(
+                          color: Colors.white,
+                          width: MediaQuery.of(context).size.width / 3 - 10,
+                          height: 100,
+                          child: Center(
+                              child: Text(
+                            selectedProduct != null
+                                ? "Sahibi:\n${selectedProduct!.exchangedTimes}."
+                                : "Sahibi:\n—",
+                            style: header,
+                            textAlign: TextAlign.center,
+                          )),
+                        ),
+                      ],
+                    ),
+                  )),
+              const Text('Ürünleriniz', style: header),
+              const SizedBox(height: 10),
               FutureBuilder(
                   future: getProducts(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return GridView.count(
+                        physics: const NeverScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
                         crossAxisSpacing: 5,
                         mainAxisSpacing: 5,
