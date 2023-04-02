@@ -32,6 +32,13 @@ class _MessagePageState extends State<MessagePage> {
         for (var i = 0; i < entryCount - 1; i++) {
           if (entries[i].value.runtimeType == bool) entries.removeAt(i);
         }
+        bool isLink;
+        try {
+          isLink = doc.data()[(entries.length - 1).toString()]["isLink"];
+        } catch (e) {
+          isLink = false;
+        }
+
         MessageItem item = MessageItem(
             doc.id,
             await firestore
@@ -39,7 +46,9 @@ class _MessagePageState extends State<MessagePage> {
                 .doc(doc.id)
                 .get()
                 .then((value) => value.get("displayName")),
-            doc.data()[(entries.length - 1).toString()]["message"],
+            !isLink
+                ? doc.data()[(entries.length - 1).toString()]["message"]
+                : "Bir ürün paylaştı: ${await firestore.collection('users').doc(doc.data()[(entries.length - 1).toString()]["product_user"]).collection('products').doc(doc.data()[(entries.length - 1).toString()]["message"]).get().then((value) => value.data()!['title'])}",
             await storage
                 .ref()
                 .child('profilePictures/${doc.id}')

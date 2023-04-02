@@ -16,13 +16,14 @@ class Product {
   late String id;
   late int exchangedTimes;
   late String category;
+  late int likes;
   DateTime dateTime = DateTime.now();
   List<dynamic> tags = [];
 
   late List<String> imgLinksURLs;
 
   Product(this.title, this.status, this.imgLinksURLs, this.description,
-      this.email, this.tags, this.category) {
+      this.email, this.tags, this.category, this.likes) {
     firstImg = imgLinksURLs[0];
   }
 
@@ -61,6 +62,7 @@ class Product {
       imgLinksURLs = (data["imgList"] as List).map((e) => e as String).toList();
     description = data["desc"];
     email = data["email"];
+    likes = data["likes"];
     if (data["tags"] != null) tags = data["tags"];
     if (data["category"] != null) category = data["category"];
     if (data["exchangedTimes"] != null) exchangedTimes = data["exchangedTimes"];
@@ -73,6 +75,7 @@ class Product {
       imgLinksURLs = (data["imgList"] as List).map((e) => e as String).toList();
     description = data["desc"];
     email = data["email"];
+    likes = data["likes"];
     if (data["tags"] != null) tags = data["tags"];
     if (data["category"] != null) category = data["category"];
     if (data["exchangedTimes"] != null) exchangedTimes = data["exchangedTimes"];
@@ -89,7 +92,8 @@ class Product {
       "exchangedTimes": 0,
       "category": category,
       "date_time": dateTime,
-      "tags": tags
+      "tags": tags,
+      "likes": likes
     };
 
     return json;
@@ -104,7 +108,8 @@ class Product {
       "email": email,
       "exchangedTimes": exchangedTimes,
       "category": category,
-      "id": id
+      "id": id,
+      "likes": likes
     };
   }
 
@@ -117,7 +122,8 @@ class Product {
       "email": newMail,
       "exchangedTimes": exchangedTimes + 1,
       "category": category,
-      "id": id
+      "id": id,
+      "likes": 0
     };
   }
 

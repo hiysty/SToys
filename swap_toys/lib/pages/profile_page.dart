@@ -13,6 +13,7 @@ import 'package:swap_toys/models/user.dart';
 import 'package:swap_toys/pages/chat_page.dart';
 import 'package:swap_toys/pages/editProfile_page.dart';
 import 'package:swap_toys/pages/error_page.dart';
+import 'package:swap_toys/pages/favourites_page.dart';
 import 'package:swap_toys/pages/inspectProduct_page.dart';
 import 'package:swap_toys/pages/notification_page.dart';
 import 'styles.dart';
@@ -159,9 +160,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                           value: 1,
                                           child: Text('Takas Tekliflerim')),
                                       const PopupMenuItem(
-                                          value: 2, child: Text('Ayarlar')),
+                                          value: 2, child: Text('Favorilerim')),
                                       const PopupMenuItem(
-                                          value: 3, child: Text('Çıkış Yap'))
+                                          value: 3, child: Text('Ayarlar')),
+                                      const PopupMenuItem(
+                                          value: 4, child: Text('Çıkış Yap'))
                                     ],
                                 icon: const Icon(Icons.more_vert),
                                 onSelected: (value) {
@@ -176,6 +179,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
                                     case 2:
                                       Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  Favorites()));
+                                      break;
+
+                                    case 3:
+                                      Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
@@ -183,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           .then(onGoBack);
                                       break;
 
-                                    case 3:
+                                    case 4:
                                       FirebaseAuth.instance.signOut();
                                       break;
                                   }

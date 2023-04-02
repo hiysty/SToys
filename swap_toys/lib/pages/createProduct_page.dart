@@ -184,7 +184,8 @@ class _CreateProductState extends State<CreateProduct> {
                             descriptionController.text,
                             User_.email,
                             _controller.getTags!,
-                            await imageLabelingTag(localImgPaths.first));
+                            await imageLabelingTag(localImgPaths.first),
+                            0);
                         product.createProduct();
                       }),
                 ))));
