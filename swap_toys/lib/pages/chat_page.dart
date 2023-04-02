@@ -1,18 +1,22 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:swap_toys/main.dart';
+import 'package:swap_toys/models/product.dart';
 import 'package:swap_toys/models/user.dart';
 import 'package:swap_toys/pages/error_page.dart';
 import 'package:swap_toys/pages/profile_page.dart';
 import 'package:swap_toys/pages/styles.dart';
 import 'package:grouped_list/grouped_list.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 class ChatPage extends StatefulWidget {
   final String email;
-
-  const ChatPage({Key? key, required this.email}) : super(key: key);
+  Product? productMsg;
+  ChatPage({Key? key, required this.email, this.productMsg}) : super(key: key);
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -83,10 +87,12 @@ class _ChatPageState extends State<ChatPage> {
     return messagesController.stream;
   }
 
-  Future sendMessage(String text, TextEditingController controller) async {
+  Future sendMessage(String text, TextEditingController controller,
+      {bool isLink = false}) async {
     {
-      final message = Message(text, DateTime.now(), true);
-      final recieverMessage = Message(text, DateTime.now(), false);
+      final message = Message(text, DateTime.now(), true, isLink: isLink);
+      final recieverMessage =
+          Message(text, DateTime.now(), false, isLink: isLink);
 
       controller.clear();
 
@@ -139,9 +145,23 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    initializeDateFormatting("tr_TR", null);
+  }
+
+  Widget productMessage(String productId) {
+    return Column();
+  }
+
+  @override
   Widget build(BuildContext context) {
     TextEditingController controller = TextEditingController();
 
+    if (widget.productMsg != null) {
+      sendMessage(widget.productMsg!.id, controller, isLink: true);
+      widget.productMsg = null;
+    }
     return FutureBuilder<Map<String, dynamic>>(
         future: getData(),
         builder: (context, snapshot) {
@@ -183,7 +203,8 @@ class _ChatPageState extends State<ChatPage> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(8),
                                     child: Text(
-                                      DateFormat.yMMMd().format(message.date),
+                                      DateFormat.yMMMd("tr_TR")
+                                          .format(message.date),
                                       style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w600),
@@ -202,15 +223,18 @@ class _ChatPageState extends State<ChatPage> {
                                                   .width /
                                               3 *
                                               2),
-                                      child: Card(
-                                        elevation: 8,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Text(
-                                            message.text,
-                                          ),
-                                        ),
-                                      )))),
+                                      child: message.isLink
+                                          ? Card(
+                                              elevation: 8,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(12),
+                                                child: Text(
+                                                  message.text,
+                                                ),
+                                              ),
+                                            )
+                                          : productMessage(message.text)))),
                             );
                           } else if (stream.hasError) {
                             return ErrorPage(
@@ -259,8 +283,9 @@ class Message {
   late String text;
   late DateTime date;
   late bool isSentByMe;
+  bool isLink = false;
 
-  Message(this.text, this.date, this.isSentByMe);
+  Message(this.text, this.date, this.isSentByMe, {this.isLink = false});
 
   Message.fromJSON(var message) {
     text = message["message"];
@@ -270,6 +295,7 @@ class Message {
     } else {
       isSentByMe = false;
     }
+    if (message["isLink"] != null) isLink = message["isLink"];
   }
 
   Map<String, dynamic> toJSON() {
@@ -277,6 +303,7 @@ class Message {
       "message": text,
       "date_time": date,
       "user": User_.email,
+      "isLink": isLink,
     };
   }
 }
