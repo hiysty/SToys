@@ -9,14 +9,14 @@ import 'package:camera/camera.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-class photogrammetryInputPage extends StatefulWidget {
+class PhotogrammetryInputPage extends StatefulWidget {
   @override
-  State<photogrammetryInputPage> createState() => _photogrammetryInputPage();
+  State<PhotogrammetryInputPage> createState() => _PhotogrammetryInputPage();
 }
 
 List<String> localImgPaths = [];
 
-class _photogrammetryInputPage extends State<photogrammetryInputPage> {
+class _PhotogrammetryInputPage extends State<PhotogrammetryInputPage> {
   List<String> paths = [];
 
   @override
@@ -104,38 +104,10 @@ class _photogrammetryInputPage extends State<photogrammetryInputPage> {
             ],
           )),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => startPhotogrammetry(),
+        onPressed: () => Navigator.pop(context, localImgPaths),
         label: const Text("Tamamla"),
         icon: const Icon(Icons.check),
       ),
     );
-  }
-
-  void startPhotogrammetry() async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    var request = http.MultipartRequest(
-        'POST', Uri.parse('http://tchange.pythonanywhere.com/'));
-    request.fields['user-productId'] = '${User_.email}';
-
-    for (var path in localImgPaths) {
-      request.files.add(await http.MultipartFile.fromPath('photos', path));
-    }
-    var response = await request.send();
-
-    Navigator.pop(context);
-
-    if (response.statusCode == HttpStatus.ok) {
-      print('Request sent successfully.');
-      Navigator.pop(context);
-    } else {
-      print('Request failed with status: ${response.statusCode}');
-    }
   }
 }

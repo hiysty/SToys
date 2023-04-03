@@ -24,6 +24,7 @@ class Product {
 
   Product(this.title, this.status, this.imgLinksURLs, this.description,
       this.email, this.tags, this.category, this.likes) {
+    exchangedTimes = 0;
     firstImg = imgLinksURLs[0];
   }
 
@@ -39,14 +40,14 @@ class Product {
     await docProduct.set(toJson());
   }
 
-  void updateProduct() {
+  Future updateProduct() async {
     final refProduct = FirebaseFirestore.instance
         .collection("users")
         .doc(email)
         .collection("products")
         .doc(id.toString());
 
-    refProduct.update(toJson());
+    await refProduct.update(toJson());
   }
 
   bool checkIfNull() {
@@ -89,7 +90,7 @@ class Product {
       "desc": description,
       "imgList": imgLinksURLs,
       "email": email,
-      "exchangedTimes": 0,
+      "exchangedTimes": exchangedTimes,
       "category": category,
       "date_time": dateTime,
       "tags": tags,
@@ -106,9 +107,11 @@ class Product {
       "desc": description,
       "imgList": imgLinksURLs,
       "email": email,
+      "date_time": dateTime,
       "exchangedTimes": exchangedTimes,
       "category": category,
       "id": id,
+      "tags": tags,
       "likes": likes
     };
   }
@@ -119,10 +122,12 @@ class Product {
       "status": status,
       "desc": description,
       "imgList": imgLinksURLs,
+      "date_time": dateTime,
       "email": newMail,
       "exchangedTimes": exchangedTimes + 1,
       "category": category,
       "id": id,
+      "tags": tags,
       "likes": 0
     };
   }

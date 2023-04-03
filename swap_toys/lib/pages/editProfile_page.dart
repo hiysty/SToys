@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -90,7 +91,8 @@ class _EditProfileState extends State<EditProfile> {
                             : CircleAvatar(
                                 backgroundColor: Colors.white,
                                 radius: 60,
-                                backgroundImage: NetworkImage(snapshot.data!)),
+                                backgroundImage:
+                                    CachedNetworkImageProvider(snapshot.data!)),
                         PopupMenuButton(
                             splashRadius: 0.1,
                             tooltip: '',

@@ -123,7 +123,14 @@ class _HomePageTileState extends State<HomePageTile> {
       "profilePicture": await FirebaseStorage.instance
           .ref()
           .child('profilePictures/${widget.product.email}')
-          .getDownloadURL()
+          .getDownloadURL(),
+      "isLiked": await FirebaseFirestore.instance
+          .collection('users')
+          .doc(User_.email)
+          .collection('likes')
+          .doc(widget.product.id)
+          .get()
+          .then((value) => value.exists)
     };
   }
 
@@ -179,7 +186,7 @@ class _HomePageTileState extends State<HomePageTile> {
   Widget build(BuildContext context) => FutureBuilder<Map<String, dynamic>>(
       future: getData(),
       builder: (context, data) {
-        if (data.hasData) {
+        if (!data.hasError) {
           return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: GestureDetector(
@@ -215,9 +222,10 @@ class _HomePageTileState extends State<HomePageTile> {
                                                     CircularProgressIndicator()))),
                                     CircleAvatar(
                                       radius: 24,
-                                      foregroundImage:
-                                          CachedNetworkImageProvider(
-                                              data.data!["profilePicture"]),
+                                      foregroundImage: data.hasData
+                                          ? CachedNetworkImageProvider(
+                                              data.data!["profilePicture"])
+                                          : null,
                                       backgroundColor: Colors.transparent,
                                     )
                                   ])),
@@ -228,7 +236,11 @@ class _HomePageTileState extends State<HomePageTile> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(widget.product.title, style: header),
-                                  Text(data.data!["username"], style: body)
+                                  Text(
+                                      data.hasData
+                                          ? data.data!["username"]
+                                          : "",
+                                      style: body)
                                 ],
                               )
                             ])),
@@ -257,58 +269,46 @@ class _HomePageTileState extends State<HomePageTile> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  FutureBuilder(
-                                      future: FirebaseFirestore.instance
+                                  StreamBuilder<int>(
+                                      stream: FirebaseFirestore.instance
                                           .collection('users')
-                                          .doc(User_.email)
-                                          .collection('likes')
+                                          .doc(widget.product.email)
+                                          .collection('products')
                                           .doc(widget.product.id)
-                                          .get()
-                                          .then((value) => value.exists),
-                                      builder: (context, isLiked) =>
-                                          StreamBuilder<int>(
-                                              stream: FirebaseFirestore.instance
-                                                  .collection('users')
-                                                  .doc(widget.product.email)
-                                                  .collection('products')
-                                                  .doc(widget.product.id)
-                                                  .snapshots()
-                                                  .map((event) =>
-                                                      event.get('likes')),
-                                              builder: (context, snapshot) =>
-                                                  LikeButton(
-                                                    isLiked: isLiked.hasData
-                                                        ? isLiked.data
-                                                        : false,
-                                                    likeCountAnimationDuration:
-                                                        Duration.zero,
-                                                    size: 37,
-                                                    likeCount: snapshot.hasData
-                                                        ? snapshot.data
+                                          .snapshots()
+                                          .map((event) => event.get('likes')),
+                                      builder: (context, snapshot) =>
+                                          LikeButton(
+                                            isLiked: data.hasData
+                                                ? data.data!["isLiked"]
+                                                : false,
+                                            likeCountAnimationDuration:
+                                                Duration.zero,
+                                            size: 37,
+                                            likeCount: snapshot.hasData
+                                                ? snapshot.data
+                                                : snapshot.hasError
+                                                    ? 666
+                                                    : 0,
+                                            countBuilder:
+                                                (likeCount, hasLiked, text) =>
+                                                    snapshot.hasData
+                                                        ? Text(snapshot.data
+                                                            .toString())
                                                         : snapshot.hasError
-                                                            ? 666
-                                                            : 0,
-                                                    countBuilder: (likeCount,
-                                                            hasLiked, text) =>
-                                                        snapshot.hasData
-                                                            ? Text(snapshot.data
-                                                                .toString())
-                                                            : snapshot.hasError
-                                                                ? const Text(
-                                                                    "666")
-                                                                : const Text(
-                                                                    "0"),
-                                                    onTap: onTapLiked,
-                                                    likeBuilder: (isLiked) {
-                                                      return Icon(
-                                                        Icons.favorite_rounded,
-                                                        size: 37,
-                                                        color: isLiked
-                                                            ? Colors.red
-                                                            : Colors.blue,
-                                                      );
-                                                    },
-                                                  ))),
+                                                            ? const Text("666")
+                                                            : const Text("0"),
+                                            onTap: onTapLiked,
+                                            likeBuilder: (isLiked) {
+                                              return Icon(
+                                                Icons.favorite_rounded,
+                                                size: 37,
+                                                color: isLiked
+                                                    ? Colors.red
+                                                    : Colors.blue,
+                                              );
+                                            },
+                                          )),
                                   IconButton(
                                       enableFeedback: false,
                                       splashColor: Colors.transparent,
@@ -326,77 +326,8 @@ class _HomePageTileState extends State<HomePageTile> {
                                       ))
                                 ]))
                       ]))));
-        } else if (data.hasError) {
-          return ErrorPage(errorCode: data.error.toString());
         } else {
-          return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                  onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  InspectProductPage(product_: widget.product)))
-                      .then((value) => manageInterests()),
-                  child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        children: [
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height:
-                                  MediaQuery.of(context).size.height * 2 / 3,
-                              child: const Center(
-                                  child: CircularProgressIndicator())),
-                          Container(
-                            color: Colors.white,
-                            child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 5),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    LikeButton(
-                                      size: 37,
-                                      likeCount: 30,
-                                      onTap: (isLiked) async {
-                                        return false;
-                                      },
-                                      likeBuilder: (isLiked) {
-                                        return Icon(
-                                          Icons.favorite_rounded,
-                                          size: 37,
-                                          color: isLiked
-                                              ? Colors.red
-                                              : Colors.blue,
-                                        );
-                                      },
-                                    ),
-                                    IconButton(
-                                      splashColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onPressed: () {},
-                                      icon: const Icon(
-                                        Icons.messenger_rounded,
-                                        size: 37,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                    IconButton(
-                                        enableFeedback: false,
-                                        splashColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        onPressed: () {},
-                                        icon: const Icon(
-                                          Icons.send_rounded,
-                                          color: Colors.blue,
-                                          size: 37,
-                                        ))
-                                  ],
-                                )),
-                          )
-                        ],
-                      ))));
+          return ErrorPage(errorCode: data.error.toString());
         }
       });
 }

@@ -26,19 +26,11 @@ const List<String> statusList = <String>[
   'Kutusu Açılmamış'
 ];
 
-Future<void> CreateProductFunc(String path) async {
-  runApp(
-    MaterialApp(
-      theme: ThemeData.dark(),
-      home: CreateProduct(),
-    ),
-  );
-}
-
 class CreateProduct extends StatefulWidget {
   @override
   State<CreateProduct> createState() => _CreateProductState();
   late String path;
+  List<String>? photogrametryPaths;
 
   CreateProduct({super.key});
 }
@@ -51,144 +43,162 @@ class _CreateProductState extends State<CreateProduct> {
   String dropdownValue = statusList[2];
   late List<String> localImgPaths = [];
   late List<String> imgLinks = [];
+  final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+
+  void startPhotogrammetry() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    var request = http.MultipartRequest(
+        'POST', Uri.parse('http://tchange.pythonanywhere.com/'));
+    request.fields['user-productId'] = User_.email;
+
+    for (var path in widget.photogrametryPaths!) {
+      request.files.add(await http.MultipartFile.fromPath('photos', path));
+    }
+    var response = await request.send();
+
+    Navigator.pop(context);
+
+    if (response.statusCode == HttpStatus.ok) {
+      print('Request sent successfully.');
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     int statuValue = 2;
-    return GestureDetector(
-        onTap: () {
-          FocusScopeNode currentFocus = FocusScope.of(context);
-          if (!currentFocus.hasPrimaryFocus) currentFocus.unfocus();
-        },
-        child: MaterialApp(
-            home: DefaultTabController(
-                length: 2,
-                child: Scaffold(
-                  appBar: AppBar(
-                    leading: IconButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        Reference termsRef = FirebaseStorage.instance
-                            .ref()
-                            .child("searchTerms/terms.txt");
-                        dynamic data = await termsRef.getData();
-                        String termsText = utf8.decode(data);
-                      },
-                      icon: const Icon(Icons.arrow_back_ios),
+    return MaterialApp(
+        scaffoldMessengerKey: _scaffoldKey,
+        home: DefaultTabController(
+            length: 2,
+            child: Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  onPressed: () async => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back_ios),
+                ),
+                title: const Text(
+                  "Ürün Ekle",
+                  style: appBar,
+                ),
+                centerTitle: true,
+              ),
+              body: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Ürün Adı',
+                      ),
                     ),
-                    title: const Text(
-                      "Ürün Ekle",
-                      style: appBar,
-                    ),
-                    centerTitle: true,
-                  ),
-                  body: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(children: [
-                        TextField(
-                          controller: titleController,
-                          decoration: const InputDecoration(
+                    const SizedBox(height: 10),
+                    TextField(
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        minLines: 3,
+                        controller: descriptionController,
+                        decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            labelText: 'Ürün Adı',
-                          ),
+                            labelText: 'Ürün Açıklaması')),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Ürün Durumu',
                         ),
-                        const SizedBox(height: 10),
-                        TextField(
-                            keyboardType: TextInputType.multiline,
-                            maxLines: null,
-                            minLines: 3,
-                            controller: descriptionController,
-                            decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Ürün Açıklaması (İsteğe Bağlı)')),
-                        const SizedBox(height: 10),
-                        DropdownButtonFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Ürün Durumu',
-                            ),
-                            value: dropdownValue,
-                            onChanged: (String? value) {
-                              setState(() {
-                                dropdownValue = value!;
-                              });
-                            },
-                            items: statusList
-                                .map<DropdownMenuItem<String>>((String value) {
-                              statuValue = statusList.indexOf(value);
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList()),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          photogrammetryInputPage()));
-                            },
-                            child: Text("3D Model Oluştur")),
-                        const SizedBox(height: 10),
-                        TabBar(
-                            onTap: (value) {
-                              FocusScopeNode currentFocus =
-                                  FocusScope.of(context);
-                              if (!currentFocus.hasPrimaryFocus)
-                                currentFocus.unfocus();
-                            },
-                            labelColor: Colors.indigo,
-                            labelStyle: header,
-                            tabs: const [
-                              Tab(text: "Resimler"),
-                              Tab(text: "Etiketler"),
-                            ]),
-                        Expanded(
-                            child: TabBarView(children: [
-                          takenPics(),
-                          tagAuto(),
-                        ]))
-                      ])),
-                  floatingActionButton: FloatingActionButton.extended(
-                      backgroundColor: Colors.blue,
-                      icon: const Icon(Icons.upload),
-                      label: const Text("Ürün Yükle"),
-                      onPressed: () async {
-                        if (titleController.text.isEmpty) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text('Lütfen ürün adı giriniz.'),
-                            backgroundColor: Colors.red,
-                          ));
-                          return;
-                        } else if (localImgPaths.isEmpty) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text('Lütfen resim ekleyiniz.'),
-                            backgroundColor: Colors.red,
-                          ));
-                          return;
-                        } else if (!_controller.hasTags) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text('En az bir etiket giriniz.'),
-                            backgroundColor: Colors.red,
-                          ));
-                          return;
-                        }
-                        Product product = Product(
-                            titleController.text,
-                            statuValue,
-                            await uploadImgs(localImgPaths),
-                            descriptionController.text,
-                            User_.email,
-                            _controller.getTags!,
-                            await imageLabelingTag(localImgPaths.first),
-                            0);
-                        product.createProduct();
-                      }),
-                ))));
+                        value: dropdownValue,
+                        onChanged: (String? value) {
+                          setState(() {
+                            dropdownValue = value!;
+                          });
+                        },
+                        items: statusList
+                            .map<DropdownMenuItem<String>>((String value) {
+                          statuValue = statusList.indexOf(value);
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList()),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                        onPressed: () async {
+                          widget.photogrametryPaths = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      PhotogrammetryInputPage()));
+                        },
+                        child: const Text("3D Model Oluştur")),
+                    const SizedBox(height: 10),
+                    const TabBar(
+                        labelColor: Colors.indigo,
+                        labelStyle: header,
+                        tabs: [
+                          Tab(text: "Resimler"),
+                          Tab(text: "Etiketler"),
+                        ]),
+                    Expanded(
+                        child: TabBarView(children: [
+                      takenPics(),
+                      tagAuto(),
+                    ]))
+                  ])),
+              floatingActionButton: FloatingActionButton.extended(
+                  backgroundColor: Colors.blue,
+                  icon: const Icon(Icons.upload),
+                  label: const Text("Ürün Yükle"),
+                  onPressed: () async {
+                    if (titleController.text.isEmpty) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('Lütfen ürün adı giriniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    } else if (descriptionController.text.isEmpty) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('Lütfen ürün açıklaması giriniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    } else if (localImgPaths.isEmpty) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('Lütfen resim ekleyiniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    } else if (!_controller.hasTags) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('En az bir etiket giriniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+
+                    if (widget.photogrametryPaths != null)
+                      startPhotogrammetry();
+
+                    Product product = Product(
+                        titleController.text,
+                        statuValue,
+                        await uploadImgs(localImgPaths),
+                        descriptionController.text,
+                        User_.email,
+                        _controller.getTags!,
+                        await imageLabelingTag(localImgPaths.first),
+                        0);
+                    product.createProduct();
+                  }),
+            )));
   }
 
   Widget takenPics() => Container(

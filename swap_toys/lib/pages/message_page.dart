@@ -28,15 +28,25 @@ class _MessagePageState extends State<MessagePage> {
       for (var doc in collection.docs) {
         List<MapEntry<String, dynamic>> entries = doc.data().entries.toList();
         entries = entries.reversed.toList();
-        final entryCount = entries.length;
-        for (var i = 0; i < entryCount - 1; i++) {
-          if (entries[i].value.runtimeType == bool) entries.removeAt(i);
+        final temp = entries.toList();
+        for (var entry in temp) {
+          if (entry.value.runtimeType == bool) entries.remove(entry);
         }
         bool isLink;
         try {
-          isLink = doc.data()[(entries.length - 1).toString()]["isLink"];
+          isLink = doc.data()[(entries.length).toString()]["isLink"];
         } catch (e) {
           isLink = false;
+        }
+
+        String lastMessage;
+
+        print(entries);
+
+        try {
+          lastMessage = doc.data()[(entries.length).toString()]["message"];
+        } catch (e) {
+          lastMessage = " ";
         }
 
         MessageItem item = MessageItem(
@@ -47,8 +57,8 @@ class _MessagePageState extends State<MessagePage> {
                 .get()
                 .then((value) => value.get("displayName")),
             !isLink
-                ? doc.data()[(entries.length - 1).toString()]["message"]
-                : "Bir ürün paylaştı: ${await firestore.collection('users').doc(doc.data()[(entries.length - 1).toString()]["product_user"]).collection('products').doc(doc.data()[(entries.length - 1).toString()]["message"]).get().then((value) => value.data()!['title'])}",
+                ? lastMessage
+                : "Bir ürün paylaştı: ${await firestore.collection('users').doc(doc.data()[(entries.length).toString()]["product_user"]).collection('products').doc(doc.data()[(entries.length).toString()]["message"]).get().then((value) => value.data()!['title'])}",
             await storage
                 .ref()
                 .child('profilePictures/${doc.id}')
@@ -59,18 +69,6 @@ class _MessagePageState extends State<MessagePage> {
     });
 
     return data;
-  }
-
-  FutureOr deleteMessages(String email) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(User_.email)
-        .collection('chats')
-        .doc(email)
-        .delete();
-
-    fetchData();
-    setState(() {});
   }
 
   @override
@@ -86,19 +84,23 @@ class _MessagePageState extends State<MessagePage> {
             stream: fetchData(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return ListView.builder(
-                    padding: const EdgeInsets.only(top: 10),
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return MessageItem(
-                        snapshot.data!.elementAt(index).id,
-                        snapshot.data!.elementAt(index).username,
-                        snapshot.data!.elementAt(index).lastMessage,
-                        snapshot.data!.elementAt(index).profilePictureURL,
-                        callback: () =>
-                            deleteMessages(snapshot.data!.elementAt(index).id),
-                      );
-                    });
+                if (snapshot.data!.isEmpty) {
+                  return const Center(
+                      child:
+                          Text("Henüz hiçbir mesajınız yok.", style: header));
+                } else {
+                  return ListView.builder(
+                      padding: const EdgeInsets.only(top: 10),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return MessageItem(
+                          snapshot.data!.elementAt(index).id,
+                          snapshot.data!.elementAt(index).username,
+                          snapshot.data!.elementAt(index).lastMessage,
+                          snapshot.data!.elementAt(index).profilePictureURL,
+                        );
+                      });
+                }
               } else if (snapshot.hasError) {
                 return ErrorPage(errorCode: snapshot.error.toString());
               } else {
@@ -113,10 +115,8 @@ class MessageItem extends StatefulWidget {
   late String username;
   late String lastMessage;
   late String profilePictureURL;
-  final VoidCallback? callback;
 
-  MessageItem(this.id, this.username, this.lastMessage, this.profilePictureURL,
-      {this.callback});
+  MessageItem(this.id, this.username, this.lastMessage, this.profilePictureURL);
 
   @override
   State<MessageItem> createState() => _MessageItemState();
@@ -153,7 +153,13 @@ class _MessageItemState extends State<MessageItem> {
                     .doc(widget.id)
                     .update({"isBlocked": !isBlocked})),
             PopupMenuItem(
-                onTap: widget.callback, child: const Text('Mesajları sil'))
+                onTap: () async => await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(User_.email)
+                    .collection('chats')
+                    .doc(widget.id)
+                    .delete(),
+                child: const Text('Mesajları sil'))
           ]);
     }
 
@@ -184,7 +190,7 @@ class _MessageItemState extends State<MessageItem> {
                     width: 50,
                     height: double.infinity,
                     child: CircleAvatar(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.transparent,
                         foregroundImage: CachedNetworkImageProvider(
                           widget.profilePictureURL,
                         )))),

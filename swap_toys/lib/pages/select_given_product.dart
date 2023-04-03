@@ -132,7 +132,7 @@ class _SelectGivenProductPageState extends State<SelectGivenProductPage> {
                     if (snapshot.hasData) {
                       return GridView.count(
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
                         crossAxisSpacing: 5,
                         mainAxisSpacing: 5,
                         shrinkWrap: true,

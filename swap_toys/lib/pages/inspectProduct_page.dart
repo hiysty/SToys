@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -148,9 +149,13 @@ class InspectProductPageState extends State<InspectProductPage> {
     List<Widget> imageWidgets = [];
 
     for (String url in urlList) {
-      Widget img = Image(
-        image: NetworkImage(url),
+      Widget img = CachedNetworkImage(
+        fadeInDuration: Duration.zero,
+        fadeOutDuration: Duration.zero,
+        imageUrl: url,
         fit: BoxFit.fitWidth,
+        progressIndicatorBuilder: (context, url, progress) =>
+            const Center(child: CircularProgressIndicator()),
       );
       imageWidgets.add(img);
     }
@@ -163,9 +168,10 @@ class InspectProductPageState extends State<InspectProductPage> {
       return ElevatedButton(
           onPressed: () {
             Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => UpdateProduct(product)),
-            );
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => UpdateProduct(product)))
+                .then((value) => setState(() => product = value));
           },
           child: const Text(
             "Ürünü Güncelle",

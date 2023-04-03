@@ -1,12 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:swap_toys/Managers/cameraManager.dart';
+import 'package:swap_toys/main.dart';
 import 'package:swap_toys/pages/photogrammetryInput_page.dart';
 import 'package:swap_toys/pages/styles.dart';
 import 'package:textfield_tags/textfield_tags.dart';
-
+import 'dart:math' as math;
 import '../models/product.dart';
 import 'createProduct_page.dart';
 import 'dart:io';
@@ -14,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:swap_toys/models/product.dart';
 import '../Managers/cameraManager.dart';
 import 'package:camera/camera.dart';
+import 'package:path_provider/path_provider.dart';
 
 class UpdateProduct extends StatefulWidget {
   UpdateProduct(this.productUpdate, {super.key});
@@ -26,34 +29,71 @@ class UpdateProductState extends State<UpdateProduct> {
   @override
   UpdateProductState(this.productUpdate_);
   Product productUpdate_;
-  late Product localProduct;
+  Product? localProduct;
+  List<String>? photogrametryPaths;
+  final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  TextfieldTagsController tagFieldController = TextfieldTagsController();
   TextfieldTagsController _controller = TextfieldTagsController();
   String? dropdownValue;
   List<String>? imgLinks;
 
   static late List<String> localImgPaths_ = [];
 
+  void startPhotogrammetry() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    var request = http.MultipartRequest(
+        'POST', Uri.parse('http://tchange.pythonanywhere.com/'));
+    request.fields['user-productId'] = User_.email;
+
+    for (var path in photogrametryPaths!) {
+      request.files.add(await http.MultipartFile.fromPath('photos', path));
+    }
+    var response = await request.send();
+
+    Navigator.pop(context);
+
+    if (response.statusCode == HttpStatus.ok) {
+      print('Request sent successfully.');
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    localProduct = productUpdate_;
-    titleController.text = localProduct.title;
-    descriptionController.text = localProduct.description;
-    dropdownValue = statusList[localProduct.status];
-    imgLinks = localProduct.imgLinksURLs;
+    titleController.text = productUpdate_.title;
+    descriptionController.text = productUpdate_.description;
+    dropdownValue = statusList[productUpdate_.status];
+    imgLinks = productUpdate_.imgLinksURLs.toList();
+    _controller.init(
+        (tag) => null,
+        LetterCase.normal,
+        productUpdate_.tags.map((e) => e as String).toList(),
+        TextEditingController(),
+        FocusNode(),
+        const [' ', ',']);
   }
 
   // ignore: empty_constructor_bodies
   @override
   Widget build(BuildContext context) {
-    for (var element in productUpdate_.tags) {
-      print(element);
-    }
-
     return MaterialApp(
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          fontFamily: 'Montserrat',
+        ),
+        scaffoldMessengerKey: _scaffoldKey,
         home: DefaultTabController(
             length: 2,
             child: Scaffold(
@@ -61,7 +101,7 @@ class UpdateProductState extends State<UpdateProduct> {
                 leading: IconButton(
                   onPressed: () {
                     localImgPaths_ = [];
-                    Navigator.pop(context);
+                    Navigator.pop(context, productUpdate_);
                   },
                   icon: const Icon(Icons.arrow_back_ios),
                 ),
@@ -78,7 +118,6 @@ class UpdateProductState extends State<UpdateProduct> {
                           border: OutlineInputBorder(),
                           labelText: 'Ürün Adı',
                         ),
-                        onChanged: (value) => localProduct.title = value,
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -88,8 +127,7 @@ class UpdateProductState extends State<UpdateProduct> {
                         controller: descriptionController,
                         decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            labelText: 'Ürün Açıklaması (İsteğe Bağlı)'),
-                        onChanged: (value) => localProduct.description = value,
+                            labelText: 'Ürün Açıklaması'),
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField(
@@ -104,7 +142,6 @@ class UpdateProductState extends State<UpdateProduct> {
                           },
                           items: statusList
                               .map<DropdownMenuItem<String>>((String value) {
-                            localProduct.status = statusList.indexOf(value);
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
@@ -112,14 +149,14 @@ class UpdateProductState extends State<UpdateProduct> {
                           }).toList()),
                       const SizedBox(height: 10),
                       ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
+                          onPressed: () async {
+                            photogrametryPaths = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        photogrammetryInputPage()));
+                                        PhotogrammetryInputPage()));
                           },
-                          child: Text("3D Model Oluştur")),
+                          child: const Text("3D Model Oluştur")),
                       const SizedBox(height: 10),
                       TabBar(
                           onTap: (value) {
@@ -146,16 +183,39 @@ class UpdateProductState extends State<UpdateProduct> {
                   label: const Text("Ürün Güncelle"),
                   icon: const Icon(Icons.replay),
                   onPressed: () async {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
+                    if (titleController.text.isEmpty) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('Lütfen ürün adı giriniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    } else if (descriptionController.text.isEmpty) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('Lütfen ürün açıklaması giriniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    } else if (localImgPaths_.isEmpty && imgLinks!.isEmpty) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('Lütfen resim ekleyiniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    } else if (!_controller.hasTags) {
+                      _scaffoldKey.currentState!.showSnackBar(const SnackBar(
+                        content: Text('En az bir etiket giriniz.'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+
+                    if (photogrametryPaths != null) {
+                      startPhotogrammetry();
+                    }
+
                     update_Button(imgLinks);
-                    Navigator.pop(context);
-                    Navigator.pop(context);
+                    localImgPaths_ = [];
+                    Navigator.pop(context, localProduct);
                   }),
             )));
   }
@@ -176,20 +236,30 @@ class UpdateProductState extends State<UpdateProduct> {
   Widget getPicPreviews_update(
       int index, List<String> ImgLinks, List<String> ImgPaths) {
     if (index <= ImgLinks.length - 1) {
-      return Container(
-        decoration: new BoxDecoration(
-            image: new DecorationImage(
-                image: NetworkImage(ImgLinks[index]),
-                fit: BoxFit.fitWidth,
-                alignment: FractionalOffset.topCenter)),
-      );
+      return GestureDetector(
+          onLongPress: () => setState(() {
+                ImgLinks.removeAt(index);
+              }),
+          child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                image: DecorationImage(
+                    image: NetworkImage(ImgLinks[index]),
+                    fit: BoxFit.fitWidth,
+                    alignment: FractionalOffset.topCenter)),
+          ));
     } else if (index <= ImgLinks.length + ImgPaths.length - 1) {
-      return Container(
-        decoration: new BoxDecoration(
-            image: new DecorationImage(
-                image: FileImage(File(ImgPaths[index - ImgLinks.length])),
-                fit: BoxFit.fitWidth,
-                alignment: FractionalOffset.topCenter)),
+      return GestureDetector(
+        onLongPress: () => setState(() {
+          ImgPaths.removeAt(index - ImgLinks.length);
+        }),
+        child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                image: DecorationImage(
+                    image: FileImage(File(ImgPaths[index - ImgLinks.length])),
+                    fit: BoxFit.fitWidth,
+                    alignment: FractionalOffset.topCenter))),
       );
     } else if (ImgLinks.length + ImgPaths.length == index) {
       return ElevatedButton.icon(
@@ -216,21 +286,64 @@ class UpdateProductState extends State<UpdateProduct> {
             if (path != null) ImgPaths.addAll(path);
           });
         },
-        icon: const Icon(Icons.add_a_photo_outlined),
-        label: const Text("resim ekle"),
+        icon: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.rotationY(math.pi),
+            child: Icon(Icons.add_a_photo_outlined, size: 22)),
+        label: const Text("Resim Ekle"),
       );
     }
 
     throw const Text("upload error!");
   }
 
-  void update_Button(List<String>? links) async {
+  Future<String> saveImage(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    final fileName = imageUrl.split('/').last;
+    final appDir = await getApplicationDocumentsDirectory();
+    final file = File('${appDir.path}/$fileName');
+    await file.writeAsBytes(response.bodyBytes);
+    return file.path;
+  }
+
+  Future update_Button(List<String>? links) async {
     List<String> map;
 
-    map = await localProduct.PathsToLinks(localImgPaths_);
+    bool isFirstImageLink = imgLinks!.isNotEmpty ? true : false;
+
+    localProduct = Product(
+        titleController.text,
+        statusList.indexOf(dropdownValue!),
+        imgLinks!,
+        descriptionController.text,
+        productUpdate_.email,
+        _controller.getTags!,
+        productUpdate_.category,
+        productUpdate_.likes);
+
+    localProduct!.id = productUpdate_.id;
+
+    map = await localProduct!.PathsToLinks(localImgPaths_);
     imgLinks!.addAll(map);
 
-    localProduct.updateProduct();
+    if (isFirstImageLink) {
+      localProduct!.category =
+          await imageLabelingTag(await saveImage(imgLinks!.first));
+    } else {
+      localProduct!.category = await imageLabelingTag(imgLinks!.first);
+    }
+
+    localProduct!.updateProduct();
+  }
+
+  Future<String> imageLabelingTag(String image) async {
+    var request = http.MultipartRequest('POST',
+        Uri.parse('http://tchange.pythonanywhere.com/object-recognition'));
+    request.fields['user-productId'] = '${User_.email}or';
+    request.files.add(await http.MultipartFile.fromPath('photo', image));
+
+    var response = await request.send();
+    return response.stream.transform(utf8.decoder).join();
   }
 
   Widget tagAuto_Update() {
@@ -274,11 +387,8 @@ class UpdateProductState extends State<UpdateProduct> {
                     hintText: _controller.hasTags ? '' : "Etiket giriniz...",
                     errorText: error,
                     prefixIcon: tags.isNotEmpty
-                        ? SingleChildScrollView(
-                            controller: sc,
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                                children: tags.map((String tag) {
+                        ? Row(
+                            children: tags.map((String tag) {
                               return Container(
                                 decoration: const BoxDecoration(
                                   borderRadius: BorderRadius.all(
@@ -316,7 +426,7 @@ class UpdateProductState extends State<UpdateProduct> {
                                   ],
                                 ),
                               );
-                            }).toList()),
+                            }).toList(),
                           )
                         : null,
                   ),

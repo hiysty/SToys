@@ -37,6 +37,7 @@ class _SearchPageState extends State<SearchPage> {
     });
 
     return Scaffold(
+      backgroundColor: backgroundColorDefault,
       appBar: AppBar(
         title: const Text(
           "Ara",

@@ -23,6 +23,7 @@ import 'package:http/http.dart' as http;
 
 //profil
 late String userInspectorMail;
+final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
 Future<Map<String, String>> fetchData(String mail) async {
   final storage = FirebaseStorage.instance;
@@ -99,7 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
         .doc(User_.email)
         .collection('chats')
         .doc(userMail)
-        .set({"isBlocked": false}, SetOptions(merge: true)).then((value) =>
+        .set({"isBlocked": isBlocked}, SetOptions(merge: true)).then((value) =>
             Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -139,93 +140,103 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: isUserProfile
-            ? AppBar(
-                title: const Text('Profil',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w700, fontSize: 23)),
-                actions: [
-                    StreamBuilder<bool>(
-                        stream: getBadge(),
-                        builder: (context, snapshot) => Badge(
-                            position: BadgePosition.topEnd(top: 9, end: 13),
-                            showBadge:
-                                snapshot.hasData ? snapshot.data! : false,
-                            child: PopupMenuButton(
-                                enableFeedback: false,
-                                splashRadius: 0.0001,
-                                itemBuilder: (context) => <PopupMenuEntry>[
-                                      const PopupMenuItem(
-                                          value: 1,
-                                          child: Text('Takas Tekliflerim')),
-                                      const PopupMenuItem(
-                                          value: 2, child: Text('Favorilerim')),
-                                      const PopupMenuItem(
-                                          value: 3, child: Text('Ayarlar')),
-                                      const PopupMenuItem(
-                                          value: 4, child: Text('Çıkış Yap'))
-                                    ],
-                                icon: const Icon(Icons.more_vert),
-                                onSelected: (value) {
-                                  switch (value) {
-                                    case 1:
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const NotificationPage()));
-                                      break;
-
-                                    case 2:
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  Favorites()));
-                                      break;
-
-                                    case 3:
-                                      Navigator.push(
+    return MaterialApp(
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          fontFamily: 'Montserrat',
+        ),
+        key: _scaffoldKey,
+        home: Scaffold(
+            backgroundColor: backgroundColorDefault,
+            appBar: isUserProfile
+                ? AppBar(
+                    title: const Text('Profil',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 23)),
+                    actions: [
+                        StreamBuilder<bool>(
+                            stream: getBadge(),
+                            builder: (context, snapshot) => Badge(
+                                position: BadgePosition.topEnd(top: 9, end: 13),
+                                showBadge:
+                                    snapshot.hasData ? snapshot.data! : false,
+                                child: PopupMenuButton(
+                                    enableFeedback: false,
+                                    splashRadius: 0.0001,
+                                    itemBuilder: (context) => <PopupMenuEntry>[
+                                          const PopupMenuItem(
+                                              value: 1,
+                                              child: Text('Takas Tekliflerim')),
+                                          const PopupMenuItem(
+                                              value: 2,
+                                              child: Text('Favorilerim')),
+                                          const PopupMenuItem(
+                                              value: 3, child: Text('Ayarlar')),
+                                          const PopupMenuItem(
+                                              value: 4,
+                                              child: Text('Çıkış Yap'))
+                                        ],
+                                    icon: const Icon(Icons.more_vert),
+                                    onSelected: (value) {
+                                      switch (value) {
+                                        case 1:
+                                          Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      EditProfile()))
-                                          .then(onGoBack);
-                                      break;
+                                                      const NotificationPage()));
+                                          break;
 
-                                    case 4:
-                                      FirebaseAuth.instance.signOut();
-                                      break;
-                                  }
-                                })))
-                  ])
-            : AppBar(
-                leading: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios),
-                    onPressed: () => Navigator.pop(context)),
-                title: const Text('Profil', style: appBar),
-                actions: [
-                  IconButton(
-                      enableFeedback: false,
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onPressed: startChat,
-                      icon: const Icon(Icons.mail_outline))
-                ],
-              ),
-        body: AccountPage(userMail),
-        floatingActionButton: Visibility(
-            visible: isUserProfile,
-            child: FloatingActionButton.extended(
-                backgroundColor: Colors.blue,
-                icon: const Icon(Icons.add),
-                label: const Text("Ürün Ekle"),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return CreateProduct();
-                  }));
-                })));
+                                        case 2:
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      Favorites()));
+                                          break;
+
+                                        case 3:
+                                          Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          EditProfile()))
+                                              .then(onGoBack);
+                                          break;
+
+                                        case 4:
+                                          FirebaseAuth.instance.signOut();
+                                          break;
+                                      }
+                                    })))
+                      ])
+                : AppBar(
+                    leading: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios),
+                        onPressed: () => Navigator.pop(context)),
+                    title: const Text('Profil', style: appBar),
+                    actions: [
+                      IconButton(
+                          enableFeedback: false,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onPressed: startChat,
+                          icon: const Icon(Icons.mail_outline))
+                    ],
+                  ),
+            body: AccountPage(userMail),
+            floatingActionButton: Visibility(
+                visible: isUserProfile,
+                child: FloatingActionButton.extended(
+                    backgroundColor: Colors.blue,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Ürün Ekle"),
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return CreateProduct();
+                      }));
+                    }))));
   }
 }
 
@@ -239,6 +250,7 @@ class MyBehavior extends ScrollBehavior {
 
 class AccountPage extends StatefulWidget {
   late String userMail;
+
   AccountPage(email) {
     userMail = email;
   }
@@ -303,17 +315,23 @@ class _AccountPageState extends State<AccountPage> {
                                 errorCode: snapshot.error.toString());
                           } else if (snapshot.hasData) {
                             User_.userProducts = snapshot.data!;
-                            return GridView.count(
-                              padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                              crossAxisSpacing: 5,
-                              mainAxisSpacing: 5,
-                              shrinkWrap: true,
-                              crossAxisCount: 3,
-                              children:
-                                  List.generate(snapshot.data!.length, (index) {
-                                return ProductGrid(snapshot.data![index]);
-                              }),
-                            );
+                            if (snapshot.data!.isEmpty) {
+                              return const Center(
+                                  child: Text("Henüz hiçbir ürününüz yok.",
+                                      style: header));
+                            } else {
+                              return GridView.count(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                                  crossAxisSpacing: 5,
+                                  mainAxisSpacing: 5,
+                                  shrinkWrap: true,
+                                  crossAxisCount: 3,
+                                  children: List.generate(snapshot.data!.length,
+                                      (index) {
+                                    return ProductGrid(snapshot.data![index]);
+                                  }));
+                            }
                           } else {
                             return Container();
                           }
@@ -435,7 +453,7 @@ class ProductGrid extends StatelessWidget {
                               ),
                             );
                             await deleteProduct();
-                            Navigator.pop(context);
+                            Navigator.pop(_scaffoldKey.currentContext!);
                           },
                           icon: const Icon(
                             Icons.check_circle,
