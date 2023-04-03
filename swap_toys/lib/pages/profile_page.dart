@@ -140,103 +140,95 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          fontFamily: 'Montserrat',
-        ),
+    return Scaffold(
         key: _scaffoldKey,
-        home: Scaffold(
-            backgroundColor: backgroundColorDefault,
-            appBar: isUserProfile
-                ? AppBar(
-                    title: const Text('Profil',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 23)),
-                    actions: [
-                        StreamBuilder<bool>(
-                            stream: getBadge(),
-                            builder: (context, snapshot) => Badge(
-                                position: BadgePosition.topEnd(top: 9, end: 13),
-                                showBadge:
-                                    snapshot.hasData ? snapshot.data! : false,
-                                child: PopupMenuButton(
-                                    enableFeedback: false,
-                                    splashRadius: 0.0001,
-                                    itemBuilder: (context) => <PopupMenuEntry>[
-                                          const PopupMenuItem(
-                                              value: 1,
-                                              child: Text('Takas Tekliflerim')),
-                                          const PopupMenuItem(
-                                              value: 2,
-                                              child: Text('Favorilerim')),
-                                          const PopupMenuItem(
-                                              value: 3, child: Text('Ayarlar')),
-                                          const PopupMenuItem(
-                                              value: 4,
-                                              child: Text('Çıkış Yap'))
-                                        ],
-                                    icon: const Icon(Icons.more_vert),
-                                    onSelected: (value) {
-                                      switch (value) {
-                                        case 1:
-                                          Navigator.push(
+        backgroundColor: backgroundColorDefault,
+        appBar: isUserProfile
+            ? AppBar(
+                title: const Text('Profil',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 23)),
+                actions: [
+                    StreamBuilder<bool>(
+                        stream: getBadge(),
+                        builder: (context, snapshot) => Badge(
+                            position: BadgePosition.topEnd(top: 9, end: 13),
+                            showBadge:
+                                snapshot.hasData ? snapshot.data! : false,
+                            child: PopupMenuButton(
+                                enableFeedback: false,
+                                splashRadius: 0.0001,
+                                itemBuilder: (context) => <PopupMenuEntry>[
+                                      const PopupMenuItem(
+                                          value: 1,
+                                          child: Text('Takas Tekliflerim')),
+                                      const PopupMenuItem(
+                                          value: 2, child: Text('Favorilerim')),
+                                      const PopupMenuItem(
+                                          value: 3, child: Text('Ayarlar')),
+                                      const PopupMenuItem(
+                                          value: 4, child: Text('Çıkış Yap'))
+                                    ],
+                                icon: const Icon(Icons.more_vert),
+                                onSelected: (value) {
+                                  switch (value) {
+                                    case 1:
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const NotificationPage()));
+                                      break;
+
+                                    case 2:
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  Favorites()));
+                                      break;
+
+                                    case 3:
+                                      Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      const NotificationPage()));
-                                          break;
+                                                      EditProfile()))
+                                          .then(onGoBack);
+                                      break;
 
-                                        case 2:
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      Favorites()));
-                                          break;
-
-                                        case 3:
-                                          Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          EditProfile()))
-                                              .then(onGoBack);
-                                          break;
-
-                                        case 4:
-                                          FirebaseAuth.instance.signOut();
-                                          break;
-                                      }
-                                    })))
-                      ])
-                : AppBar(
-                    leading: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios),
-                        onPressed: () => Navigator.pop(context)),
-                    title: const Text('Profil', style: appBar),
-                    actions: [
-                      IconButton(
-                          enableFeedback: false,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onPressed: startChat,
-                          icon: const Icon(Icons.mail_outline))
-                    ],
-                  ),
-            body: AccountPage(userMail),
-            floatingActionButton: Visibility(
-                visible: isUserProfile,
-                child: FloatingActionButton.extended(
-                    backgroundColor: Colors.blue,
-                    icon: const Icon(Icons.add),
-                    label: const Text("Ürün Ekle"),
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return CreateProduct();
-                      }));
-                    }))));
+                                    case 4:
+                                      FirebaseAuth.instance.signOut();
+                                      break;
+                                  }
+                                })))
+                  ])
+            : AppBar(
+                leading: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
+                    onPressed: () => Navigator.pop(context)),
+                title: const Text('Profil', style: appBar),
+                actions: [
+                  IconButton(
+                      enableFeedback: false,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      onPressed: startChat,
+                      icon: const Icon(Icons.mail_outline))
+                ],
+              ),
+        body: AccountPage(userMail),
+        floatingActionButton: Visibility(
+            visible: isUserProfile,
+            child: FloatingActionButton.extended(
+                backgroundColor: Colors.blue,
+                icon: const Icon(Icons.add),
+                label: const Text("Ürün Ekle"),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return CreateProduct();
+                  }));
+                })));
   }
 }
 

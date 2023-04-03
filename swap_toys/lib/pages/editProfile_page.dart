@@ -64,11 +64,15 @@ class _EditProfileState extends State<EditProfile> {
 
   bool removeProfilePicture = false;
 
+  final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+
   @override
   Widget build(BuildContext context) {
     usernameController.text = User_.displayName;
 
     return Scaffold(
+      key: _scaffoldKey,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
           title: const Text(
         'Profil Düzenle',
@@ -161,7 +165,7 @@ class _EditProfileState extends State<EditProfile> {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     showDialog(
-      context: context,
+      context: _scaffoldKey.currentContext!,
       barrierDismissible: false,
       builder: (context) => const Center(
         child: CircularProgressIndicator(),

@@ -45,6 +45,18 @@ class _CreateProductState extends State<CreateProduct> {
   late List<String> imgLinks = [];
   final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
+  @override
+  void initState() {
+    super.initState();
+    _controller.init(
+        (tag) => null,
+        LetterCase.normal,
+        List.empty(growable: true),
+        TextEditingController(),
+        FocusNode(),
+        const [' ', ',']);
+  }
+
   void startPhotogrammetry() async {
     showDialog(
       context: context,
@@ -76,6 +88,10 @@ class _CreateProductState extends State<CreateProduct> {
   Widget build(BuildContext context) {
     int statuValue = 2;
     return MaterialApp(
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          fontFamily: 'Montserrat',
+        ),
         scaffoldMessengerKey: _scaffoldKey,
         home: DefaultTabController(
             length: 2,

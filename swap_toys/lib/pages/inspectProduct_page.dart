@@ -134,7 +134,21 @@ class InspectProductPageState extends State<InspectProductPage> {
                       ],
                     ),
                     const SizedBox(height: 5),
-                    updateExchangeButton(context)
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          updateExchangeButton(context),
+                          CircleAvatar(
+                              backgroundColor: Colors.blue,
+                              child: IconButton(
+                                splashRadius: 0.0001,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onPressed: () {},
+                                icon: const Icon(Icons.threed_rotation,
+                                    color: Colors.white),
+                              ))
+                        ])
                   ],
                 ));
               } else if (snapshot.hasError) {
