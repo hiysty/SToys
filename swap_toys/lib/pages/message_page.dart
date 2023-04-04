@@ -49,6 +49,19 @@ class _MessagePageState extends State<MessagePage> {
           lastMessage = " ";
         }
 
+        String profilePicture;
+        try {
+          profilePicture = await storage
+              .ref()
+              .child('profilePictures/${doc.id}')
+              .getDownloadURL();
+        } catch (e) {
+          profilePicture = await storage
+              .ref()
+              .child('profilePictures/default_white.png')
+              .getDownloadURL();
+        }
+
         MessageItem item = MessageItem(
             doc.id,
             await firestore
@@ -59,10 +72,7 @@ class _MessagePageState extends State<MessagePage> {
             !isLink
                 ? lastMessage
                 : "Bir ürün paylaştı: ${await firestore.collection('users').doc(doc.data()[(entries.length).toString()]["product_user"]).collection('products').doc(doc.data()[(entries.length).toString()]["message"]).get().then((value) => value.data()!['title'])}",
-            await storage
-                .ref()
-                .child('profilePictures/${doc.id}')
-                .getDownloadURL());
+            profilePicture);
         items.add(item);
       }
       return items;

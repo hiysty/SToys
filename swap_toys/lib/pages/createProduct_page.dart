@@ -133,13 +133,13 @@ class _CreateProductState extends State<CreateProduct> {
                         ),
                         value: dropdownValue,
                         onChanged: (String? value) {
+                          statuValue = statusList.indexOf(value!);
                           setState(() {
-                            dropdownValue = value!;
+                            dropdownValue = value;
                           });
                         },
                         items: statusList
                             .map<DropdownMenuItem<String>>((String value) {
-                          statuValue = statusList.indexOf(value);
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -441,6 +441,11 @@ class _CreateProductState extends State<CreateProduct> {
     request.files.add(await http.MultipartFile.fromPath('photo', image));
 
     var response = await request.send();
-    return response.stream.transform(utf8.decoder).join();
+
+    if (response.statusCode == HttpStatus.ok) {
+      return response.stream.transform(utf8.decoder).join();
+    } else {
+      return "Kategori Yok";
+    }
   }
 }

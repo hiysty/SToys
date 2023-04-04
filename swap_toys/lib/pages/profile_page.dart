@@ -333,7 +333,7 @@ class _AccountPageState extends State<AccountPage> {
           } else if (snapshot.hasError) {
             return ErrorPage(errorCode: snapshot.error.toString());
           } else {
-            return Container();
+            return const Center(child: CircularProgressIndicator());
           }
         });
   }
@@ -394,6 +394,15 @@ class ProductGrid extends StatelessWidget {
           .then((value) => value.docs)) {
         if (product.id == offer.data()["recievedProduct"]["id"]) {
           offer.reference.delete();
+        }
+      }
+
+      for (var like in await user.reference
+          .collection('likes')
+          .get()
+          .then((value) => value.docs)) {
+        if (product.id == like.id) {
+          like.reference.delete();
         }
       }
     }

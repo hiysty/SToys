@@ -114,16 +114,23 @@ class HomePageTile extends StatefulWidget {
 
 class _HomePageTileState extends State<HomePageTile> {
   Future<Map<String, dynamic>> getData() async {
+    String? profilePicture;
+    try {
+      profilePicture = await FirebaseStorage.instance
+          .ref()
+          .child('profilePictures/${widget.product.email}')
+          .getDownloadURL();
+    } catch (e) {
+      profilePicture = null;
+    }
+
     return {
       "username": await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.product.email)
           .get()
           .then((value) => value.data()!["displayName"]),
-      "profilePicture": await FirebaseStorage.instance
-          .ref()
-          .child('profilePictures/${widget.product.email}')
-          .getDownloadURL(),
+      "profilePicture": profilePicture,
       "isLiked": await FirebaseFirestore.instance
           .collection('users')
           .doc(User_.email)
@@ -210,25 +217,18 @@ class _HomePageTileState extends State<HomePageTile> {
                                           builder: (context) => ProfilePage(
                                               widget.product.email))).then(
                                       (value) => ProfilePage(User_.email)),
-                                  child: Stack(children: [
-                                    const CircleAvatar(
-                                        radius: 24,
-                                        backgroundColor: Colors.transparent,
-                                        child: SizedBox(
-                                            height: 32,
-                                            width: 32,
-                                            child: Center(
-                                                child:
-                                                    CircularProgressIndicator()))),
-                                    CircleAvatar(
-                                      radius: 24,
-                                      foregroundImage: data.hasData
-                                          ? CachedNetworkImageProvider(
-                                              data.data!["profilePicture"])
-                                          : null,
-                                      backgroundColor: Colors.transparent,
-                                    )
-                                  ])),
+                                  child: CircleAvatar(
+                                    radius: 24,
+                                    foregroundImage: data.hasData
+                                        ? (data.data!["profilePicture"] != null
+                                            ? CachedNetworkImageProvider(
+                                                data.data!["profilePicture"])
+                                            : Image.asset(
+                                                    'lib/assets/images/default.png')
+                                                .image)
+                                        : null,
+                                    backgroundColor: Colors.white,
+                                  )),
                               const SizedBox(
                                 width: 10,
                               ),
