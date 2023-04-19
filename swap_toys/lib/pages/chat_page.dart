@@ -120,7 +120,7 @@ class _ChatPageState extends State<ChatPage> {
         .collection('chats')
         .doc(User_.email);
 
-    recieverDocument.set({"isRead": false}, SetOptions(merge: true));
+    await recieverDocument.set({"isRead": false}, SetOptions(merge: true));
 
     bool isBlocked = false;
 
@@ -128,21 +128,22 @@ class _ChatPageState extends State<ChatPage> {
       isBlocked =
           await recieverDocument.get().then((value) => value["isBlocked"]);
     } catch (e) {
-      recieverDocument.set({"isBlocked": isBlocked}, SetOptions(merge: true));
+      await recieverDocument
+          .set({"isBlocked": isBlocked}, SetOptions(merge: true));
     }
 
     if (isBlocked) return;
 
-    String recieverName = await recieverDocument
-        .get()
-        .then((value) => (value.data()!.length - 1).toString());
+    String recieverName;
 
-    Map<String, dynamic> recieverData =
-        await recieverDocument.get().then((value) => value.data()!);
+    final temp = await recieverDocument.get().then((value) => value.data());
 
-    recieverData.addAll({recieverName: recieverMessage.toJSON()});
+    temp!.removeWhere((key, value) => value is bool);
 
-    await recieverDocument.set(recieverData);
+    recieverName = (temp.length + 1).toString();
+
+    await recieverDocument
+        .set({recieverName: recieverMessage.toJSON()}, SetOptions(merge: true));
   }
 
   Future<Product> getProduct(Message message) async {
